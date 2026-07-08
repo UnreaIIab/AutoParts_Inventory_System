@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --c-canvas: 245 246 248;
+    --c-surface: 255 255 255;
+    --c-surface-muted: 250 251 252;
+    --c-sidebar: 34 33 43;
+    --c-sidebar-hover: 46 45 58;
+    --c-sidebar-active: 53 51 63;
+    --c-sidebar-border: 48 47 58;
+    --c-sidebar-text: 201 200 211;
+    --c-sidebar-muted: 139 138 151;
+    --c-primary: 113 75 103;
+    --c-primary-hover: 95 63 87;
+    --c-primary-soft: 243 238 242;
+    --c-primary-softhover: 233 224 231;
+    --c-primary-text: 113 75 103;
+    --c-border: 231 232 236;
+    --c-border-strong: 213 215 221;
+    --c-content: 43 44 51;
+    --c-content-muted: 107 111 118;
+    --c-content-subtle: 154 160 168;
+    --c-success: 15 157 88;
+    --c-success-soft: 230 244 238;
+    --c-success-text: 11 107 61;
+    --c-warning: 224 168 0;
+    --c-warning-soft: 251 243 217;
+    --c-warning-text: 138 106 0;
+    --c-danger: 214 69 69;
+    --c-danger-soft: 251 234 234;
+    --c-danger-text: 161 43 43;
+    --c-info: 47 128 237;
+    --c-info-soft: 231 240 253;
+    --c-info-text: 27 95 191;
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-canvas text-content text-base;
+  }
+
+  /* Odoo-style thin scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #c7cad1 transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: #c7cad1;
+    border-radius: 8px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: #adb1ba;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Skeleton shimmer used by loaders */
+  .skeleton {
+    @apply relative overflow-hidden bg-border/60 rounded;
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    );
+    animation: shimmer 1.4s infinite;
+  }
+
+  /* Focus ring consistent across interactive elements */
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-surface;
+  }
+
+  /* Hide native number-input spinners (used in compact table cells) */
+  .no-spin::-webkit-outer-spin-button,
+  .no-spin::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-spin[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}
+
+/* Print: isolate the report surface, hide app chrome */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #report-print,
+  #report-print * {
+    visibility: visible;
+  }
+  #report-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+  }
+  .print-hidden {
+    display: none !important;
+  }
+}
