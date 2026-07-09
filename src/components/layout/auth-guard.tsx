@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Boxes, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth";
+import { hydrateAll, resetAll } from "@/lib/store/db";
 
 /** Protects the app shell: unauthenticated visitors are sent to /login. */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!loading && !user) router.replace("/login");
   }, [loading, user, router]);
+
+  // Load data from the backend once signed in; clear it on sign-out.
+  React.useEffect(() => {
+    if (user) hydrateAll();
+    else resetAll();
+  }, [user]);
 
   if (loading || !user) {
     return (

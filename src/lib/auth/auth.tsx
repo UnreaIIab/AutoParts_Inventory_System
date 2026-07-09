@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export interface AuthUser {
   email: string;
@@ -11,16 +13,15 @@ export interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  login: (email: string, password: string) => { ok: boolean; error?: string };
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  logout: () => Promise<void>;
 }
 
 const SESSION_KEY = "autoparts:session";
 
 /**
- * Demo credentials for the localStorage build. In production this whole module
- * is swapped for Supabase Auth (supabase.auth.signInWithPassword / signOut) —
- * the `useAuth` surface stays the same so no screen changes.
+ * Demo credentials used only in the localStorage fallback (when Supabase env
+ * vars are absent). With Supabase configured, real users come from Supabase Auth.
  */
 export const DEMO_CREDENTIALS = {
   email: "ayoubfellat2016@gmail.com",
@@ -28,6 +29,15 @@ export const DEMO_CREDENTIALS = {
   name: "Ayoub Fellat",
   role: "Administrator",
 };
+
+function toAuthUser(u: SupabaseUser): AuthUser {
+  const meta = (u.user_metadata ?? {}) as Record<string, string>;
+  return {
+    email: u.email ?? "",
+    name: meta.name ?? meta.full_name ?? (u.email ? u.email.split("@")[0] : "User"),
+    role: meta.role ?? "Administrator",
+  };
+}
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
@@ -42,6 +52,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
+    if (isSupabaseConfigured && supabase) {
+      supabase.auth.getSession().then(({ data }) => {
+        setUser(data.session ? toAuthUser(data.session.user) : null);
+        setLoading(false);
+      });
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session ? toAuthUser(session.user) : null);
+      });
+      return () => sub.subscription.unsubscribe();
+    }
+    // localStorage fallback
     try {
       const raw = localStorage.getItem(SESSION_KEY);
       if (raw) setUser(JSON.parse(raw));
@@ -51,7 +72,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = React.useCallback((email: string, password: string) => {
+  const login = React.useCallback(async (email: string, password: string) => {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) {
+        const msg = /invalid login/i.test(error.message)
+          ? "Invalid email or password"
+          : error.message;
+        return { ok: false, error: msg };
+      }
+      return { ok: true };
+    }
+    // demo fallback
     const e = email.trim().toLowerCase();
     if (e === DEMO_CREDENTIALS.email && password === DEMO_CREDENTIALS.password) {
       const u: AuthUser = {
@@ -66,8 +101,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: false, error: "Invalid email or password" };
   }, []);
 
-  const logout = React.useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
+  const logout = React.useCallback(async () => {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.auth.signOut();
+    } else {
+      localStorage.removeItem(SESSION_KEY);
+    }
     setUser(null);
   }, []);
 

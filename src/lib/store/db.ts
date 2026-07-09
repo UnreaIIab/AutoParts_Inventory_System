@@ -33,3 +33,13 @@ export const db = {
   purchases: new Collection<Invoice>("purchases", purchasesSeed),
   movements: new Collection<StockMovement>("movements", movementSeed),
 };
+
+/** Load every collection from the backend (called once the user is signed in). */
+export async function hydrateAll(): Promise<void> {
+  await Promise.all(Object.values(db).map((c) => c.hydrate()));
+}
+
+/** Clear every collection's cache (called on logout). */
+export function resetAll(): void {
+  Object.values(db).forEach((c) => c.reset());
+}

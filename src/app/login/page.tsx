@@ -6,6 +6,7 @@ import { Boxes, Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useAuth, DEMO_CREDENTIALS } from "@/lib/auth/auth";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { useT } from "@/lib/i18n";
 
 export default function LoginPage() {
@@ -13,8 +14,8 @@ export default function LoginPage() {
   const { user, loading, login } = useAuth();
   const { t } = useT();
 
-  const [email, setEmail] = React.useState(DEMO_CREDENTIALS.email);
-  const [password, setPassword] = React.useState(DEMO_CREDENTIALS.password);
+  const [email, setEmail] = React.useState(isSupabaseConfigured ? "" : DEMO_CREDENTIALS.email);
+  const [password, setPassword] = React.useState(isSupabaseConfigured ? "" : DEMO_CREDENTIALS.password);
   const [showPassword, setShowPassword] = React.useState(false);
   const [remember, setRemember] = React.useState(true);
   const [error, setError] = React.useState("");
@@ -25,11 +26,11 @@ export default function LoginPage() {
     if (!loading && user) router.replace("/dashboard");
   }, [loading, user, router]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSubmitting(true);
-    const res = login(email, password);
+    const res = await login(email, password);
     if (res.ok) {
       router.replace("/dashboard");
     } else {
@@ -124,16 +125,18 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Demo hint */}
-          <div className="mt-5 rounded-md border border-dashed border-border-strong bg-surface-muted px-3 py-2.5 text-xs text-content-muted">
-            <p className="font-medium text-content">{t("Demo account")}</p>
-            <p className="mt-0.5">
-              {t("Email")}: {DEMO_CREDENTIALS.email}
-            </p>
-            <p>
-              {t("Password")}: {DEMO_CREDENTIALS.password}
-            </p>
-          </div>
+          {/* Demo hint — only shown in the localStorage fallback */}
+          {!isSupabaseConfigured && (
+            <div className="mt-5 rounded-md border border-dashed border-border-strong bg-surface-muted px-3 py-2.5 text-xs text-content-muted">
+              <p className="font-medium text-content">{t("Demo account")}</p>
+              <p className="mt-0.5">
+                {t("Email")}: {DEMO_CREDENTIALS.email}
+              </p>
+              <p>
+                {t("Password")}: {DEMO_CREDENTIALS.password}
+              </p>
+            </div>
+          )}
         </div>
 
         <p className="mt-6 text-center text-xs text-content-subtle">
