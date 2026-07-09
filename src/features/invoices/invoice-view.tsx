@@ -35,6 +35,7 @@ import type {
   Customer,
 } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import {
   type InvoiceKind,
   applyInvoiceStock,
@@ -67,6 +68,7 @@ interface DraftLine {
 
 export function InvoiceView({ kind }: { kind: InvoiceKind }) {
   const toast = useToast();
+  const { t } = useT();
   const isPurchase = kind === "purchase";
   const collection = isPurchase ? db.purchases : db.sales;
   const invoices = useCollection(collection);
@@ -138,11 +140,11 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
   const buildInvoice = (status: InvoiceStatus): Invoice | null => {
     const party = parties.find((p) => p.id === partyId);
     if (!party) {
-      toast.error("Missing " + (isPurchase ? "supplier" : "customer"), "Please select one.");
+      toast.error(isPurchase ? t("Missing supplier") : t("Missing customer"), t("Please select one."));
       return null;
     }
     if (draftLines.length === 0) {
-      toast.error("No line items", "Add at least one product.");
+      toast.error(t("No line items"), t("Add at least one product."));
       return null;
     }
     return {
@@ -164,7 +166,7 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
     const invoice = buildInvoice("draft");
     if (!invoice) return;
     collection.create(invoice);
-    toast.success("Draft saved", invoice.reference);
+    toast.success(t("Draft saved"), invoice.reference);
     setCreating(false);
   };
 
@@ -174,15 +176,15 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
     if (!isPurchase) {
       const blocker = findUnfulfillable(invoice.lines);
       if (blocker) {
-        toast.error("Insufficient stock", `Not enough stock for “${blocker}”.`);
+        toast.error(t("Insufficient stock"), t("Not enough stock for “{name}”.", { name: blocker }));
         return;
       }
     }
     collection.create(invoice);
     applyInvoiceStock(kind, invoice);
     toast.success(
-      isPurchase ? "Purchase received" : "Sale confirmed",
-      `${invoice.reference} · stock updated`,
+      isPurchase ? t("Purchase received") : t("Sale confirmed"),
+      t("{ref} · stock updated", { ref: invoice.reference }),
     );
     setCreating(false);
   };
@@ -191,19 +193,19 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
     if (!isPurchase) {
       const blocker = findUnfulfillable(inv.lines);
       if (blocker) {
-        toast.error("Insufficient stock", `Not enough stock for “${blocker}”.`);
+        toast.error(t("Insufficient stock"), t("Not enough stock for “{name}”.", { name: blocker }));
         return;
       }
     }
     collection.update(inv.id, { status: "confirmed" });
     applyInvoiceStock(kind, { ...inv, status: "confirmed" });
-    toast.success("Confirmed", `${inv.reference} · stock updated`);
+    toast.success(t("Confirmed"), t("{ref} · stock updated", { ref: inv.reference }));
     setViewing(null);
   };
 
   const markPaid = (inv: Invoice) => {
     collection.update(inv.id, { status: "paid", paymentStatus: "paid" });
-    toast.success("Marked as paid", inv.reference);
+    toast.success(t("Marked as paid"), inv.reference);
     setViewing((v) =>
       v && v.id === inv.id ? { ...v, status: "paid", paymentStatus: "paid" } : v,
     );
@@ -215,14 +217,14 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
       reverseInvoiceStock(kind, deleteTarget);
     }
     collection.remove(deleteTarget.id);
-    toast.success("Deleted", `${deleteTarget.reference}${deleteTarget.status !== "draft" ? " · stock reversed" : ""}`);
+    toast.success(t("Deleted"), deleteTarget.reference);
     setDeleteTarget(null);
     setViewing(null);
   };
 
   const columns: Column<Invoice>[] = [
     {
-      key: "reference", header: "Reference", sortable: true, accessor: (i) => i.reference,
+      key: "reference", header: t("Reference"), sortable: true, accessor: (i) => i.reference,
       cell: (i) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-primary-soft text-primary">
@@ -230,37 +232,37 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
           </span>
           <div>
             <p className="font-medium text-content">{i.reference}</p>
-            <p className="text-xs text-content-muted">{i.lines.length} items</p>
+            <p className="text-xs text-content-muted">{t("{n} items", { n: i.lines.length })}</p>
           </div>
         </div>
       ),
     },
-    { key: "partyName", header: isPurchase ? "Supplier" : "Customer", sortable: true, accessor: (i) => i.partyName },
-    { key: "date", header: "Date", sortable: true, accessor: (i) => i.date, cell: (i) => formatDate(i.date) },
+    { key: "partyName", header: isPurchase ? t("Supplier") : t("Customer"), sortable: true, accessor: (i) => i.partyName },
+    { key: "date", header: t("Date"), sortable: true, accessor: (i) => i.date, cell: (i) => formatDate(i.date) },
     {
-      key: "total", header: "Total", align: "right", sortable: true, accessor: (i) => i.total,
+      key: "total", header: t("Total"), align: "right", sortable: true, accessor: (i) => i.total,
       cell: (i) => <span className="font-medium">{formatCurrency(i.total)}</span>,
     },
     {
-      key: "payment", header: "Payment", align: "center", accessor: (i) => i.paymentStatus,
-      cell: (i) => <Badge tone={paymentTone[i.paymentStatus]}>{i.paymentStatus}</Badge>,
+      key: "payment", header: t("Payment"), align: "center", accessor: (i) => i.paymentStatus,
+      cell: (i) => <Badge tone={paymentTone[i.paymentStatus]}>{t(i.paymentStatus)}</Badge>,
     },
     {
-      key: "status", header: "Status", align: "center", sortable: true, accessor: (i) => i.status,
-      cell: (i) => <Badge tone={statusTone[i.status]} dot>{i.status}</Badge>,
+      key: "status", header: t("Status"), align: "center", sortable: true, accessor: (i) => i.status,
+      cell: (i) => <Badge tone={statusTone[i.status]} dot>{t(i.status)}</Badge>,
     },
   ];
 
-  const noun = isPurchase ? "Purchase" : "Sale";
+  const noun = isPurchase ? t("Purchase") : t("Sale");
 
   return (
     <>
       <PageHeader
-        title={isPurchase ? "Purchases" : "Sales"}
-        subtitle={`${invoices.length} ${isPurchase ? "purchase" : "sales"} invoices`}
+        title={isPurchase ? t("Purchases") : t("Sales")}
+        subtitle={isPurchase ? t("{n} purchase invoices", { n: invoices.length }) : t("{n} sales invoices", { n: invoices.length })}
         actions={
           <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-            New {noun}
+            {isPurchase ? t("New Purchase") : t("New Sale")}
           </Button>
         }
       />
@@ -272,7 +274,7 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by reference or name…"
+                placeholder={t("Search by reference or name…")}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
@@ -281,10 +283,10 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="">Any status</option>
-              <option value="draft">Draft</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="paid">Paid</option>
+              <option value="">{t("Any status")}</option>
+              <option value="draft">{t("Draft")}</option>
+              <option value="confirmed">{t("Confirmed")}</option>
+              <option value="paid">{t("Paid")}</option>
             </Select>
           </div>
         </Card>
@@ -300,30 +302,30 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
                 trigger={<Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>}
               >
                 <DropdownItem icon={<Eye className="h-4 w-4" />} onClick={() => setViewing(i)}>
-                  View
+                  {t("View")}
                 </DropdownItem>
                 {i.status === "draft" && (
                   <DropdownItem icon={<CheckCircle2 className="h-4 w-4" />} onClick={() => confirmExisting(i)}>
-                    Confirm
+                    {t("Confirm")}
                   </DropdownItem>
                 )}
                 {i.status === "confirmed" && (
                   <DropdownItem icon={<DollarSign className="h-4 w-4" />} onClick={() => markPaid(i)}>
-                    Mark as paid
+                    {t("Mark as paid")}
                   </DropdownItem>
                 )}
                 <DropdownDivider />
                 <DropdownItem tone="danger" icon={<Trash2 className="h-4 w-4" />} onClick={() => setDeleteTarget(i)}>
-                  Delete
+                  {t("Delete")}
                 </DropdownItem>
               </Dropdown>
             )}
             emptyState={
               <EmptyState
                 icon={isPurchase ? <ShoppingCart className="h-6 w-6" /> : <Receipt className="h-6 w-6" />}
-                title={`No ${isPurchase ? "purchases" : "sales"} yet`}
-                description={`Create a ${noun.toLowerCase()} invoice to ${isPurchase ? "receive stock" : "sell products"}.`}
-                action={<Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>New {noun}</Button>}
+                title={isPurchase ? t("No purchases yet") : t("No sales yet")}
+                description={isPurchase ? t("Create a purchase invoice to receive stock.") : t("Create a sale invoice to sell products.")}
+                action={<Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>{isPurchase ? t("New Purchase") : t("New Sale")}</Button>}
               />
             }
           />
@@ -335,17 +337,17 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
         open={creating}
         onClose={() => setCreating(false)}
         width="lg"
-        title={`New ${noun.toLowerCase()} invoice`}
-        description={isPurchase ? "Receiving will increase stock" : "Confirming will decrease stock"}
+        title={isPurchase ? t("New purchase invoice") : t("New sale invoice")}
+        description={isPurchase ? t("Receiving will increase stock") : t("Confirming will decrease stock")}
         footer={
           <>
             <div className="mr-auto text-sm">
-              <span className="text-content-muted">Total:&nbsp;</span>
+              <span className="text-content-muted">{t("Total")}:&nbsp;</span>
               <span className="text-base font-semibold text-content">{formatCurrency(total)}</span>
             </div>
-            <Button variant="secondary" onClick={saveDraft}>Save draft</Button>
+            <Button variant="secondary" onClick={saveDraft}>{t("Save draft")}</Button>
             <Button icon={<CheckCircle2 className="h-4 w-4" />} onClick={saveConfirmed}>
-              {isPurchase ? "Receive" : "Confirm"}
+              {isPurchase ? t("Receive") : t("Confirm")}
             </Button>
           </>
         }
@@ -353,52 +355,52 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
         <div className="space-y-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <Label required>{isPurchase ? "Supplier" : "Customer"}</Label>
+              <Label required>{isPurchase ? t("Supplier") : t("Customer")}</Label>
               <Select value={partyId} onChange={(e) => setPartyId(e.target.value)}>
-                <option value="">Select {isPurchase ? "supplier" : "customer"}…</option>
+                <option value="">{isPurchase ? t("Select supplier…") : t("Select customer…")}</option>
                 {parties.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </Select>
             </div>
             <div>
-              <Label>{isPurchase ? "Bill number" : "Invoice number"}</Label>
+              <Label>{isPurchase ? t("Bill number") : t("Invoice number")}</Label>
               <Input value={invoiceNumber} disabled readOnly />
-              <p className="mt-1 text-xs text-content-subtle">Generated automatically</p>
+              <p className="mt-1 text-xs text-content-subtle">{t("Generated automatically")}</p>
             </div>
             <div>
-              <Label required>Date</Label>
+              <Label required>{t("Date")}</Label>
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div>
-              <Label>Payment status</Label>
+              <Label>{t("Payment status")}</Label>
               <Select
                 value={paymentStatus}
                 onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
               >
-                <option value="unpaid">Unpaid</option>
-                <option value="partial">Partial</option>
-                <option value="paid">Paid</option>
+                <option value="unpaid">{t("Unpaid")}</option>
+                <option value="partial">{t("Partial")}</option>
+                <option value="paid">{t("Paid")}</option>
               </Select>
             </div>
           </div>
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <Label className="mb-0">Line items</Label>
+              <Label className="mb-0">{t("Line items")}</Label>
               <Button size="sm" variant="ghost" icon={<Plus className="h-4 w-4" />} onClick={addLine}>
-                Add line
+                {t("Add line")}
               </Button>
             </div>
             <div className="overflow-hidden rounded-md border border-border">
               <table className="w-full text-sm">
                 <thead className="bg-surface-muted text-xs uppercase tracking-wide text-content-muted">
                   <tr>
-                    <th className="px-3 py-2 text-left font-semibold">Product</th>
-                    <th className="w-20 px-2 py-2 text-right font-semibold">Qty</th>
-                    <th className="w-24 px-2 py-2 text-right font-semibold">Price</th>
-                    <th className="w-20 px-2 py-2 text-right font-semibold">Disc %</th>
-                    <th className="w-28 px-2 py-2 text-right font-semibold">Total</th>
+                    <th className="px-3 py-2 text-left font-semibold">{t("Product")}</th>
+                    <th className="w-20 px-2 py-2 text-right font-semibold">{t("Qty")}</th>
+                    <th className="w-24 px-2 py-2 text-right font-semibold">{t("Price")}</th>
+                    <th className="w-20 px-2 py-2 text-right font-semibold">{t("Disc %")}</th>
+                    <th className="w-28 px-2 py-2 text-right font-semibold">{t("Total")}</th>
                     <th className="w-10 px-2 py-2" />
                   </tr>
                 </thead>
@@ -413,10 +415,10 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
                             onChange={(e) => onProductChange(i, e.target.value)}
                             className="h-8"
                           >
-                            <option value="">Select product…</option>
+                            <option value="">{t("Select product…")}</option>
                             {products.map((p) => (
                               <option key={p.id} value={p.id}>
-                                {p.name} {!isPurchase ? `(${p.stock} in stock)` : ""}
+                                {p.name} {!isPurchase ? `(${p.stock} ${t("in stock")})` : ""}
                               </option>
                             ))}
                           </Select>
@@ -466,7 +468,7 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
                             </button>
                           )}
                           {product && !isPurchase && line.quantity > product.stock && (
-                            <p className="mt-0.5 text-[10px] text-danger">low</p>
+                            <p className="mt-0.5 text-[10px] text-danger">{t("low")}</p>
                           )}
                         </td>
                       </tr>
@@ -478,8 +480,8 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
           </div>
 
           <div>
-            <Label>Notes</Label>
-            <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional…" />
+            <Label>{t("Notes")}</Label>
+            <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("Optional…")} />
           </div>
         </div>
       </Drawer>
@@ -494,15 +496,15 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
         footer={
           viewing && (
             <>
-              <Button variant="secondary" onClick={() => setViewing(null)}>Close</Button>
+              <Button variant="secondary" onClick={() => setViewing(null)}>{t("Close")}</Button>
               {viewing.status === "draft" && (
                 <Button icon={<CheckCircle2 className="h-4 w-4" />} onClick={() => confirmExisting(viewing)}>
-                  {isPurchase ? "Receive" : "Confirm"}
+                  {isPurchase ? t("Receive") : t("Confirm")}
                 </Button>
               )}
               {viewing.status === "confirmed" && (
                 <Button icon={<DollarSign className="h-4 w-4" />} onClick={() => markPaid(viewing)}>
-                  Mark as paid
+                  {t("Mark as paid")}
                 </Button>
               )}
             </>
@@ -513,25 +515,25 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge tone={statusTone[viewing.status]} dot>{viewing.status}</Badge>
-                <Badge tone={paymentTone[viewing.paymentStatus]}>{viewing.paymentStatus}</Badge>
+                <Badge tone={statusTone[viewing.status]} dot>{t(viewing.status)}</Badge>
+                <Badge tone={paymentTone[viewing.paymentStatus]}>{t(viewing.paymentStatus)}</Badge>
               </div>
               <span className="text-lg font-semibold text-content">{formatCurrency(viewing.total)}</span>
             </div>
             {viewing.invoiceNumber && (
               <p className="text-sm text-content-muted">
-                {isPurchase ? "Bill" : "Invoice"} #: <span className="font-medium text-content">{viewing.invoiceNumber}</span>
+                {isPurchase ? t("Bill") : t("Invoice")} #: <span className="font-medium text-content">{viewing.invoiceNumber}</span>
               </p>
             )}
             <div className="overflow-hidden rounded-md border border-border">
               <table className="w-full text-sm">
                 <thead className="bg-surface-muted text-xs uppercase tracking-wide text-content-muted">
                   <tr>
-                    <th className="px-3 py-2 text-left font-semibold">Product</th>
-                    <th className="px-3 py-2 text-right font-semibold">Qty</th>
-                    <th className="px-3 py-2 text-right font-semibold">Price</th>
-                    <th className="px-3 py-2 text-right font-semibold">Disc</th>
-                    <th className="px-3 py-2 text-right font-semibold">Total</th>
+                    <th className="px-3 py-2 text-left font-semibold">{t("Product")}</th>
+                    <th className="px-3 py-2 text-right font-semibold">{t("Qty")}</th>
+                    <th className="px-3 py-2 text-right font-semibold">{t("Price")}</th>
+                    <th className="px-3 py-2 text-right font-semibold">{t("Disc")}</th>
+                    <th className="px-3 py-2 text-right font-semibold">{t("Total")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -553,7 +555,7 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
             </div>
             {viewing.notes && (
               <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-subtle">Notes</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-subtle">{t("Notes")}</p>
                 <p className="text-sm text-content-muted">{viewing.notes}</p>
               </div>
             )}
@@ -564,7 +566,7 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
               className="text-danger hover:bg-danger-soft"
               onClick={() => setDeleteTarget(viewing)}
             >
-              Delete invoice
+              {t("Delete invoice")}
             </Button>
           </div>
         )}
@@ -574,11 +576,11 @@ export function InvoiceView({ kind }: { kind: InvoiceKind }) {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
-        title="Delete invoice"
+        title={t("Delete invoice")}
         message={
           deleteTarget && deleteTarget.status !== "draft"
-            ? `This will remove ${deleteTarget.reference} and reverse its stock movements.`
-            : `This will permanently remove ${deleteTarget?.reference}.`
+            ? t("This will remove {ref} and reverse its stock movements.", { ref: deleteTarget.reference })
+            : t("This will permanently remove {ref}.", { ref: deleteTarget?.reference ?? "" })
         }
       />
     </>

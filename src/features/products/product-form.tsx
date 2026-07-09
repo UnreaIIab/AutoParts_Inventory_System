@@ -13,6 +13,7 @@ import {
 import { Input, Textarea, Select, Label, FieldError } from "@/components/ui/input";
 import { useCollection } from "@/lib/store/hooks";
 import { db } from "@/lib/store/db";
+import { useT } from "@/lib/i18n";
 
 function Section({
   title,
@@ -38,8 +39,8 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
+  const { t } = useT();
   const categories = useCollection(db.categories);
-  const brands = useCollection(db.brands);
   const suppliers = useCollection(db.suppliers);
 
   const {
@@ -65,7 +66,7 @@ export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
 
   return (
     <form id={id} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <Section title="General">
+      <Section title={t("General")}>
         <div className="sm:col-span-2 flex items-center gap-4">
           <div className="relative">
             {imageUrl ? (
@@ -91,39 +92,39 @@ export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
             )}
           </div>
           <div>
-            <Label>Product image</Label>
+            <Label>{t("Product image")}</Label>
             <label className="inline-flex cursor-pointer items-center gap-2 rounded border border-border-strong bg-surface px-3 py-1.5 text-sm text-content hover:bg-surface-muted">
               <ImagePlus className="h-4 w-4" />
-              Upload image
+              {t("Upload image")}
               <input type="file" accept="image/*" className="hidden" onChange={onImage} />
             </label>
-            <p className="mt-1 text-xs text-content-subtle">PNG or JPG, stored locally.</p>
+            <p className="mt-1 text-xs text-content-subtle">{t("PNG or JPG, stored locally.")}</p>
           </div>
         </div>
         <div className="sm:col-span-2">
-          <Label required>Product name</Label>
+          <Label required>{t("Product name")}</Label>
           <Input
             {...register("name")}
             invalid={!!errors.name}
-            placeholder="e.g. Brake Pad Set — Front"
+            placeholder={t("e.g. Brake Pad Set — Front")}
           />
           <FieldError message={errors.name?.message} />
         </div>
         <div>
-          <Label>SKU</Label>
+          <Label>{t("SKU")}</Label>
           <Input {...register("sku")} placeholder="BRK-FP-001" />
         </div>
         <div>
-          <Label>Barcode</Label>
+          <Label>{t("Barcode")}</Label>
           <Input {...register("barcode")} placeholder="7290001112221" />
         </div>
       </Section>
 
-      <Section title="Categorization">
+      <Section title={t("Categorization")}>
         <div>
-          <Label required>Category</Label>
+          <Label required>{t("Category")}</Label>
           <Select {...register("category")} invalid={!!errors.category}>
-            <option value="">Select category…</option>
+            <option value="">{t("Select category…")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.name}>
                 {c.name}
@@ -133,20 +134,9 @@ export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
           <FieldError message={errors.category?.message} />
         </div>
         <div>
-          <Label>Brand</Label>
-          <Select {...register("brand")}>
-            <option value="">Select brand…</option>
-            {brands.map((b) => (
-              <option key={b.id} value={b.name}>
-                {b.name}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="sm:col-span-2">
-          <Label required>Supplier</Label>
+          <Label required>{t("Supplier")}</Label>
           <Select {...register("supplier")} invalid={!!errors.supplier}>
-            <option value="">Select supplier…</option>
+            <option value="">{t("Select supplier…")}</option>
             {suppliers.map((s) => (
               <option key={s.id} value={s.name}>
                 {s.name}
@@ -157,9 +147,9 @@ export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
         </div>
       </Section>
 
-      <Section title="Pricing">
+      <Section title={t("Pricing")}>
         <div>
-          <Label required>Purchase price</Label>
+          <Label required>{t("Purchase price")}</Label>
           <Input
             type="number"
             step="0.01"
@@ -168,9 +158,12 @@ export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
             leftIcon={<span className="text-xs">DH</span>}
           />
           <FieldError message={errors.purchasePrice?.message} />
+          <p className="mt-1 text-xs text-content-subtle">
+            {t("Auto-updated by purchases (weighted average). Set the opening cost here.")}
+          </p>
         </div>
         <div>
-          <Label required>Selling price</Label>
+          <Label required>{t("Selling price")}</Label>
           <Input
             type="number"
             step="0.01"
@@ -182,14 +175,14 @@ export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
         </div>
       </Section>
 
-      <Section title="Inventory">
+      <Section title={t("Inventory")}>
         <div>
-          <Label required>Stock quantity</Label>
+          <Label required>{t("Stock quantity")}</Label>
           <Input type="number" {...register("stock")} invalid={!!errors.stock} />
           <FieldError message={errors.stock?.message} />
         </div>
         <div>
-          <Label required>Minimum stock</Label>
+          <Label required>{t("Minimum stock")}</Label>
           <Input
             type="number"
             {...register("minStock")}
@@ -198,7 +191,7 @@ export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
           <FieldError message={errors.minStock?.message} />
         </div>
         <div>
-          <Label required>Unit</Label>
+          <Label required>{t("Unit")}</Label>
           <Select {...register("unit")} invalid={!!errors.unit}>
             {productUnits.map((u) => (
               <option key={u} value={u}>{u}</option>
@@ -207,21 +200,21 @@ export function ProductForm({ id, defaultValues, onSubmit }: ProductFormProps) {
           <FieldError message={errors.unit?.message} />
         </div>
         <div>
-          <Label>Status</Label>
+          <Label>{t("Status")}</Label>
           <Select {...register("status")}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="active">{t("Active")}</option>
+            <option value="inactive">{t("Inactive")}</option>
           </Select>
         </div>
       </Section>
 
-      <Section title="Description">
+      <Section title={t("Description")}>
         <div className="sm:col-span-2">
-          <Label>Notes</Label>
+          <Label>{t("Notes")}</Label>
           <Textarea
             rows={3}
             {...register("description")}
-            placeholder="Optional product description…"
+            placeholder={t("Optional product description…")}
           />
         </div>
       </Section>

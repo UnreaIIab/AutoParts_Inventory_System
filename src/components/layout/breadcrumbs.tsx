@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Home } from "lucide-react";
 import { navigation } from "@/config/navigation";
+import { useT } from "@/lib/i18n";
 
 function titleize(segment: string) {
   return segment
@@ -13,12 +14,13 @@ function titleize(segment: string) {
 
 export function Breadcrumbs() {
   const pathname = usePathname();
+  const { t } = useT();
   const segments = pathname.split("/").filter(Boolean);
 
   const crumbs = segments.map((seg, i) => {
     const href = "/" + segments.slice(0, i + 1).join("/");
     const nav = navigation.find((n) => n.href === href);
-    return { label: nav?.label ?? titleize(seg), href };
+    return { label: t(nav?.label ?? titleize(seg)), href };
   });
 
   return (

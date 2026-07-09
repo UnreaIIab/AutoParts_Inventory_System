@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { navigation, type NavItem } from "@/config/navigation";
 import { useSidebar } from "./sidebar-context";
+import { useT } from "@/lib/i18n";
 import { Boxes, PanelLeftClose, PanelLeftOpen, X, ChevronDown } from "lucide-react";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { collapsed, toggle, mobileOpen, setMobileOpen } = useSidebar();
+  const { t } = useT();
 
   const nav = (
     <>
@@ -30,7 +32,7 @@ export function Sidebar() {
               AutoParts
             </p>
             <p className="truncate text-[11px] text-sidebar-muted">
-              Inventory System
+              {t("Inventory System")}
             </p>
           </div>
         )}
@@ -63,7 +65,7 @@ export function Sidebar() {
           ) : (
             <>
               <PanelLeftClose className="h-[18px] w-[18px]" />
-              <span>Collapse</span>
+              <span>{t("Collapse")}</span>
             </>
           )}
         </button>
@@ -116,6 +118,7 @@ function NavEntry({
   collapsed: boolean;
   onNavigate: () => void;
 }) {
+  const { t } = useT();
   const Icon = item.icon;
   const active = pathname === item.href || pathname.startsWith(item.href + "/");
   const hasChildren = !!item.children?.length;
@@ -137,7 +140,7 @@ function NavEntry({
           className={cn(linkClass, "w-full")}
         >
           <Icon className="h-[18px] w-[18px] shrink-0" />
-          <span className="truncate">{item.label}</span>
+          <span className="truncate">{t(item.label)}</span>
           <ChevronDown
             className={cn(
               "ml-auto h-4 w-4 transition-transform",
@@ -155,7 +158,7 @@ function NavEntry({
                 className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-sidebar-text/90 transition-colors hover:bg-sidebar-hover hover:text-white"
               >
                 <span className="h-1 w-1 rounded-full bg-sidebar-muted" />
-                <span className="truncate">{child.label}</span>
+                <span className="truncate">{t(child.label)}</span>
               </Link>
             ))}
           </div>
@@ -168,11 +171,11 @@ function NavEntry({
     <Link
       href={item.href}
       onClick={onNavigate}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? t(item.label) : undefined}
       className={linkClass}
     >
       <Icon className="h-[18px] w-[18px] shrink-0" />
-      {!collapsed && <span className="truncate">{item.label}</span>}
+      {!collapsed && <span className="truncate">{t(item.label)}</span>}
       {active && !collapsed && (
         <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
       )}

@@ -2,7 +2,6 @@ import { Collection } from "./collection";
 import type {
   Product,
   Category,
-  Brand,
   Customer,
   Supplier,
   Invoice,
@@ -11,7 +10,6 @@ import type {
 import {
   productSeed,
   categorySeed,
-  brandSeed,
   customerSeed,
   supplierSeed,
   salesSeed,
@@ -29,7 +27,6 @@ import {
 export const db = {
   products: new Collection<Product>("products", productSeed),
   categories: new Collection<Category>("categories", categorySeed),
-  brands: new Collection<Brand>("brands", brandSeed),
   customers: new Collection<Customer>("customers", customerSeed),
   suppliers: new Collection<Supplier>("suppliers", supplierSeed),
   sales: new Collection<Invoice>("sales", salesSeed),

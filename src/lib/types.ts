@@ -15,7 +15,6 @@ export interface Product {
   sku: string;
   barcode: string;
   category: string;
-  brand: string;
   supplier: string;
   purchasePrice: number;
   sellingPrice: number;
@@ -35,13 +34,6 @@ export interface Category {
   name: string;
   description?: string;
   archived?: boolean;
-}
-
-export interface Brand {
-  id: string;
-  name: string;
-  description?: string;
-  logoUrl?: string;
 }
 
 export interface Customer {

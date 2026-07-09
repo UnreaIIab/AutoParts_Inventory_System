@@ -4,6 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 /* ----------------------------- Tabs ----------------------------- */
 interface TabsProps {
@@ -102,6 +103,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, pageSize, total, onPageChange }: PaginationProps) {
+  const { t } = useT();
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
@@ -109,7 +111,7 @@ export function Pagination({ page, pageSize, total, onPageChange }: PaginationPr
   return (
     <div className="flex items-center justify-between px-4 py-3 text-sm text-content-muted">
       <span>
-        {start}–{end} of {total}
+        {start}–{end} {t("of")} {total}
       </span>
       <div className="flex items-center gap-1">
         <Button

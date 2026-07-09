@@ -31,6 +31,7 @@ import { useCollection } from "@/lib/store/hooks";
 import { db } from "@/lib/store/db";
 import type { Supplier } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 /* --------- shared contact form shape (used by Suppliers & Customers) -------- */
 export interface ContactFormValues {
@@ -62,6 +63,7 @@ type DialogState =
 
 export function SuppliersView() {
   const toast = useToast();
+  const { t } = useT();
   const suppliers = useCollection(db.suppliers);
   const products = useCollection(db.products);
   const purchases = useCollection(db.purchases);
@@ -98,15 +100,15 @@ export function SuppliersView() {
 
   const save = () => {
     const errs: Record<string, string> = {};
-    if (form.name.trim().length < 2) errs.name = "Name is required";
+    if (form.name.trim().length < 2) errs.name = t("Name is required");
     if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email))
-      errs.email = "Enter a valid email";
+      errs.email = t("Enter a valid email");
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
     if (dialog?.type === "edit") {
       db.suppliers.update(dialog.supplier.id, form);
-      toast.success("Supplier updated", form.name);
+      toast.success(t("Supplier updated"), form.name);
     } else {
       db.suppliers.create({
         ...form,
@@ -114,7 +116,7 @@ export function SuppliersView() {
         totalPurchased: 0,
         createdAt: new Date().toISOString(),
       });
-      toast.success("Supplier created", form.name);
+      toast.success(t("Supplier created"), form.name);
     }
     setDialog(null);
   };
@@ -122,13 +124,13 @@ export function SuppliersView() {
   const confirmDelete = () => {
     if (!deleteTarget) return;
     db.suppliers.remove(deleteTarget.id);
-    toast.success("Supplier deleted", deleteTarget.name);
+    toast.success(t("Supplier deleted"), deleteTarget.name);
     setDeleteTarget(null);
   };
 
   const columns: Column<Supplier>[] = [
     {
-      key: "name", header: "Supplier", sortable: true, accessor: (s) => s.name,
+      key: "name", header: t("Supplier"), sortable: true, accessor: (s) => s.name,
       cell: (s) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-primary-soft text-primary">
@@ -141,12 +143,12 @@ export function SuppliersView() {
         </div>
       ),
     },
-    { key: "contactPerson", header: "Contact", accessor: (s) => s.contactPerson ?? "—",
+    { key: "contactPerson", header: t("Contact"), accessor: (s) => s.contactPerson ?? "—",
       cell: (s) => s.contactPerson || "—" },
-    { key: "city", header: "City", sortable: true, accessor: (s) => s.city },
-    { key: "phone", header: "Phone", accessor: (s) => s.phone },
+    { key: "city", header: t("City"), sortable: true, accessor: (s) => s.city },
+    { key: "phone", header: t("Phone"), accessor: (s) => s.phone },
     {
-      key: "totalPurchased", header: "Total Purchased", align: "right", sortable: true,
+      key: "totalPurchased", header: t("Total Purchased"), align: "right", sortable: true,
       accessor: (s) => s.totalPurchased,
       cell: (s) => <span className="font-medium">{formatCurrency(s.totalPurchased)}</span>,
     },
@@ -155,11 +157,11 @@ export function SuppliersView() {
   return (
     <>
       <PageHeader
-        title="Suppliers"
-        subtitle={`${suppliers.length} suppliers`}
+        title={t("Suppliers")}
+        subtitle={t("{n} suppliers", { n: suppliers.length })}
         actions={
           <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-            New Supplier
+            {t("New Supplier")}
           </Button>
         }
       />
@@ -170,7 +172,7 @@ export function SuppliersView() {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search suppliers…"
+              placeholder={t("Search suppliers…")}
               leftIcon={<Search className="h-4 w-4" />}
             />
           </div>
@@ -191,23 +193,23 @@ export function SuppliersView() {
                 }
               >
                 <DropdownItem icon={<Eye className="h-4 w-4" />} onClick={() => setViewing(s)}>
-                  View details
+                  {t("View details")}
                 </DropdownItem>
                 <DropdownItem icon={<Pencil className="h-4 w-4" />} onClick={() => openEdit(s)}>
-                  Edit
+                  {t("Edit")}
                 </DropdownItem>
                 <DropdownDivider />
                 <DropdownItem tone="danger" icon={<Trash2 className="h-4 w-4" />} onClick={() => setDeleteTarget(s)}>
-                  Delete
+                  {t("Delete")}
                 </DropdownItem>
               </Dropdown>
             )}
             emptyState={
               <EmptyState
                 icon={<Truck className="h-6 w-6" />}
-                title="No suppliers found"
-                description="Add suppliers to track purchases and sourcing."
-                action={<Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>New Supplier</Button>}
+                title={t("No suppliers found")}
+                description={t("Add suppliers to track purchases and sourcing.")}
+                action={<Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>{t("New Supplier")}</Button>}
               />
             }
           />
@@ -218,11 +220,11 @@ export function SuppliersView() {
       <Dialog
         open={!!dialog}
         onClose={() => setDialog(null)}
-        title={dialog?.type === "edit" ? "Edit supplier" : "New supplier"}
+        title={dialog?.type === "edit" ? t("Edit supplier") : t("New supplier")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setDialog(null)}>Cancel</Button>
-            <Button onClick={save}>{dialog?.type === "edit" ? "Save changes" : "Create"}</Button>
+            <Button variant="secondary" onClick={() => setDialog(null)}>{t("Cancel")}</Button>
+            <Button onClick={save}>{dialog?.type === "edit" ? t("Save changes") : t("Create")}</Button>
           </>
         }
       >
@@ -234,12 +236,12 @@ export function SuppliersView() {
         open={!!viewing}
         onClose={() => setViewing(null)}
         title={viewing?.name}
-        description={viewing ? `Supplier since ${formatDate(viewing.createdAt)}` : ""}
+        description={viewing ? t("Supplier since {date}", { date: formatDate(viewing.createdAt) }) : ""}
         footer={
           viewing && (
             <>
-              <Button variant="secondary" onClick={() => setViewing(null)}>Close</Button>
-              <Button icon={<Pencil className="h-4 w-4" />} onClick={() => { openEdit(viewing); setViewing(null); }}>Edit</Button>
+              <Button variant="secondary" onClick={() => setViewing(null)}>{t("Close")}</Button>
+              <Button icon={<Pencil className="h-4 w-4" />} onClick={() => { openEdit(viewing); setViewing(null); }}>{t("Edit")}</Button>
             </>
           )
         }
@@ -257,8 +259,8 @@ export function SuppliersView() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
-        title="Delete supplier"
-        message={`This will permanently remove “${deleteTarget?.name}”.`}
+        title={t("Delete supplier")}
+        message={t('This will permanently remove “{name}”.', { name: deleteTarget?.name ?? "" })}
       />
     </>
   );
@@ -280,6 +282,7 @@ export function ContactForm({
   showTax?: boolean;
   showNotes?: boolean;
 }) {
+  const { t } = useT();
   const set =
     (k: keyof ContactFormValues) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -287,43 +290,43 @@ export function ContactForm({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2">
-        <Label required>Name</Label>
+        <Label required>{t("Name")}</Label>
         <Input value={form.name} onChange={set("name")} invalid={!!errors.name} autoFocus />
         {errors.name && <p className="mt-1 text-xs text-danger">{errors.name}</p>}
       </div>
       <div>
-        <Label>Email</Label>
+        <Label>{t("Email")}</Label>
         <Input value={form.email} onChange={set("email")} invalid={!!errors.email} />
         {errors.email && <p className="mt-1 text-xs text-danger">{errors.email}</p>}
       </div>
       <div>
-        <Label>Phone</Label>
+        <Label>{t("Phone")}</Label>
         <Input value={form.phone} onChange={set("phone")} />
       </div>
       {showContact && (
         <div>
-          <Label>Contact person</Label>
+          <Label>{t("Contact person")}</Label>
           <Input value={form.contactPerson} onChange={set("contactPerson")} />
         </div>
       )}
       {showTax && (
         <div>
-          <Label>Tax number</Label>
+          <Label>{t("Tax number")}</Label>
           <Input value={form.taxNumber} onChange={set("taxNumber")} />
         </div>
       )}
       <div>
-        <Label>City</Label>
+        <Label>{t("City")}</Label>
         <Input value={form.city} onChange={set("city")} />
       </div>
       <div className="sm:col-span-2">
-        <Label>Address</Label>
+        <Label>{t("Address")}</Label>
         <Input value={form.address} onChange={set("address")} />
       </div>
       {showNotes && (
         <div className="sm:col-span-2">
-          <Label>Notes</Label>
-          <Textarea rows={2} value={form.notes} onChange={set("notes")} placeholder="Optional notes…" />
+          <Label>{t("Notes")}</Label>
+          <Textarea rows={2} value={form.notes} onChange={set("notes")} placeholder={t("Optional notes…")} />
         </div>
       )}
     </div>
@@ -340,22 +343,23 @@ function SupplierDetailTabs({
   products: { id: string; name: string; stock: number; unit: string }[];
   purchases: { id: string; reference: string; date: string; total: number; paymentStatus: string }[];
 }) {
+  const { t } = useT();
   const [tab, setTab] = React.useState("general");
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <InfoTile icon={<Package className="h-4 w-4" />} label="Products" value={String(products.length)} />
-        <InfoTile icon={<Truck className="h-4 w-4" />} label="Total Purchased" value={formatCurrency(supplier.totalPurchased)} />
+        <InfoTile icon={<Package className="h-4 w-4" />} label={t("Products")} value={String(products.length)} />
+        <InfoTile icon={<Truck className="h-4 w-4" />} label={t("Total Purchased")} value={formatCurrency(supplier.totalPurchased)} />
       </div>
 
       <Tabs
         active={tab}
         onChange={setTab}
         tabs={[
-          { id: "general", label: "General" },
-          { id: "products", label: "Products", count: products.length },
-          { id: "purchases", label: "Purchases", count: purchases.length },
-          { id: "payments", label: "Payments" },
+          { id: "general", label: t("General") },
+          { id: "products", label: t("Products"), count: products.length },
+          { id: "purchases", label: t("Purchases"), count: purchases.length },
+          { id: "payments", label: t("Payments") },
         ]}
       />
 
@@ -363,12 +367,12 @@ function SupplierDetailTabs({
         <div className="space-y-4">
           <ContactBlock email={supplier.email} phone={supplier.phone} city={supplier.city} address={supplier.address} />
           <dl className="divide-y divide-border rounded-md border border-border text-sm">
-            <Row label="Contact person" value={supplier.contactPerson || "—"} />
-            <Row label="Tax number" value={supplier.taxNumber || "—"} />
+            <Row label={t("Contact person")} value={supplier.contactPerson || "—"} />
+            <Row label={t("Tax number")} value={supplier.taxNumber || "—"} />
           </dl>
           {supplier.notes && (
             <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-subtle">Notes</p>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-subtle">{t("Notes")}</p>
               <p className="text-sm text-content-muted">{supplier.notes}</p>
             </div>
           )}
@@ -376,9 +380,9 @@ function SupplierDetailTabs({
       )}
 
       {tab === "products" && (
-        <Section title={`Products supplied (${products.length})`}>
+        <Section title={t("Products supplied ({n})", { n: products.length })}>
           {products.length === 0 ? (
-            <p className="px-4 py-3 text-sm text-content-muted">No products linked.</p>
+            <p className="px-4 py-3 text-sm text-content-muted">{t("No products linked.")}</p>
           ) : (
             <ul className="divide-y divide-border">
               {products.map((p) => (
@@ -393,9 +397,9 @@ function SupplierDetailTabs({
       )}
 
       {tab === "purchases" && (
-        <Section title={`Purchase history (${purchases.length})`}>
+        <Section title={t("Purchase history ({n})", { n: purchases.length })}>
           {purchases.length === 0 ? (
-            <p className="px-4 py-3 text-sm text-content-muted">No purchases yet.</p>
+            <p className="px-4 py-3 text-sm text-content-muted">{t("No purchases yet.")}</p>
           ) : (
             <ul className="divide-y divide-border">
               {purchases.map((p) => (
@@ -415,8 +419,8 @@ function SupplierDetailTabs({
       {tab === "payments" && (
         <EmptyState
           icon={<Wallet className="h-6 w-6" />}
-          title="Payments — coming soon"
-          description="Supplier payment tracking and accounts payable will live here."
+          title={t("Payments — coming soon")}
+          description={t("Supplier payment tracking and accounts payable will live here.")}
         />
       )}
     </div>

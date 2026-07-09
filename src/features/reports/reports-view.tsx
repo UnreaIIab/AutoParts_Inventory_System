@@ -25,6 +25,7 @@ import { toCSV, downloadFile } from "@/lib/csv";
 import { stockLevel } from "@/features/products/product-schema";
 import { lineTotal } from "@/features/invoices/invoice-engine";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 type ReportId =
   | "inventory"
@@ -46,6 +47,7 @@ const reportMeta: Record<ReportId, { label: string; icon: React.ReactNode; desc:
 };
 
 export function ReportsView() {
+  const { t } = useT();
   const products = useCollection(db.products);
   const allSales = useCollection(db.sales);
   const allPurchases = useCollection(db.purchases);
@@ -173,8 +175,8 @@ export function ReportsView() {
   return (
     <>
       <PageHeader
-        title="Reports"
-        subtitle="Inventory, sales and purchasing analytics"
+        title={t("Reports")}
+        subtitle={t("Inventory, sales and purchasing analytics")}
         actions={
           <>
             <Button
@@ -182,10 +184,10 @@ export function ReportsView() {
               icon={<Download className="h-4 w-4" />}
               onClick={() => downloadFile(`${report}-report.csv`, data.csv())}
             >
-              Export CSV
+              {t("Export CSV")}
             </Button>
             <Button icon={<Printer className="h-4 w-4" />} onClick={() => window.print()}>
-              Print
+              {t("Print")}
             </Button>
           </>
         }
@@ -213,9 +215,9 @@ export function ReportsView() {
                 </span>
                 <div className="min-w-0">
                   <p className={cn("text-sm font-medium", active ? "text-primary" : "text-content")}>
-                    {m.label}
+                    {t(m.label)}
                   </p>
-                  <p className="text-xs text-content-muted">{m.desc}</p>
+                  <p className="text-xs text-content-muted">{t(m.desc)}</p>
                 </div>
               </button>
             );
@@ -226,9 +228,9 @@ export function ReportsView() {
         <Card id="report-print" className="p-0">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <div>
-              <h2 className="text-lg font-semibold text-content">{meta.label}</h2>
+              <h2 className="text-lg font-semibold text-content">{t(meta.label)}</h2>
               <p className="text-sm text-content-muted">
-                Generated {formatDate(new Date())} · AutoParts Inventory System
+                {t("Generated")} {formatDate(new Date())} · AutoParts Inventory System
               </p>
             </div>
             <span className="text-primary print-hidden">{meta.icon}</span>
@@ -237,22 +239,22 @@ export function ReportsView() {
           {/* Filter toolbar */}
           <div className="print-hidden flex flex-wrap items-end gap-3 border-b border-border bg-surface-muted px-6 py-3">
             <div className="min-w-[180px] flex-1">
-              <Label className="mb-1">Search</Label>
+              <Label className="mb-1">{t("Search")}</Label>
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Filter rows…"
+                placeholder={t("Filter rows…")}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
             {meta.dated && (
               <>
                 <div>
-                  <Label className="mb-1">From</Label>
+                  <Label className="mb-1">{t("From")}</Label>
                   <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
                 </div>
                 <div>
-                  <Label className="mb-1">To</Label>
+                  <Label className="mb-1">{t("To")}</Label>
                   <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
                 </div>
               </>
@@ -267,7 +269,7 @@ export function ReportsView() {
                   setTo("");
                 }}
               >
-                Clear
+                {t("Clear")}
               </Button>
             )}
           </div>
@@ -275,7 +277,7 @@ export function ReportsView() {
           <div className="overflow-x-auto p-6">
             {data.rows.length === 0 ? (
               <p className="py-10 text-center text-sm text-content-muted">
-                {("empty" in data && data.empty) || "No data available."}
+                {("empty" in data && data.empty ? t(data.empty as string) : t("No data available."))}
               </p>
             ) : (
               <table className="w-full border-collapse text-sm">
@@ -289,7 +291,7 @@ export function ReportsView() {
                           i === 0 ? "text-left" : "text-right",
                         )}
                       >
-                        {c}
+                        {t(c)}
                       </th>
                     ))}
                   </tr>
@@ -306,7 +308,7 @@ export function ReportsView() {
                           )}
                         >
                           {ci === row.length - 1 && report === "low-stock" ? (
-                            <Badge tone={cell === "Out of stock" ? "danger" : "warning"}>{cell}</Badge>
+                            <Badge tone={cell === "Out of stock" ? "danger" : "warning"}>{t(cell)}</Badge>
                           ) : (
                             cell
                           )}
@@ -320,7 +322,7 @@ export function ReportsView() {
                     <tr className="border-t-2 border-border-strong font-semibold text-content">
                       {data.footer.map((cell, ci) => (
                         <td key={ci} className={cn("py-2.5 pr-4 tabular-nums", ci === 0 ? "text-left" : "text-right")}>
-                          {cell}
+                          {t(cell)}
                         </td>
                       ))}
                     </tr>

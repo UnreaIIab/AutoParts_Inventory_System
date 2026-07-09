@@ -10,11 +10,13 @@ import type { Product, Invoice, MovementType } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { stockLevel } from "./product-schema";
 import { lineTotal } from "@/features/invoices/invoice-engine";
+import { useT } from "@/lib/i18n";
 
 const stockTone = { in: "success", low: "warning", out: "danger" } as const;
 const stockText = { in: "In stock", low: "Low stock", out: "Out of stock" };
 
 export function ProductDetailTabs({ product }: { product: Product }) {
+  const { t } = useT();
   const sales = useCollection(db.sales);
   const purchases = useCollection(db.purchases);
   const movements = useCollection(db.movements);
@@ -47,8 +49,8 @@ export function ProductDetailTabs({ product }: { product: Product }) {
         <div className="min-w-0 flex-1">
           <p className="text-lg font-semibold text-content">{product.stock} {product.unit}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <Badge tone={stockTone[level]} dot>{stockText[level]}</Badge>
-            <Badge tone={product.status === "active" ? "success" : "neutral"}>{product.status}</Badge>
+            <Badge tone={stockTone[level]} dot>{t(stockText[level])}</Badge>
+            <Badge tone={product.status === "active" ? "success" : "neutral"}>{t(product.status)}</Badge>
           </div>
         </div>
       </div>
@@ -57,28 +59,27 @@ export function ProductDetailTabs({ product }: { product: Product }) {
         active={tab}
         onChange={setTab}
         tabs={[
-          { id: "general", label: "General" },
-          { id: "inventory", label: "Inventory" },
-          { id: "purchases", label: "Purchases", count: productPurchases.length },
-          { id: "sales", label: "Sales", count: productSales.length },
-          { id: "movements", label: "Movements", count: productMovements.length },
+          { id: "general", label: t("General") },
+          { id: "inventory", label: t("Inventory") },
+          { id: "purchases", label: t("Purchases"), count: productPurchases.length },
+          { id: "sales", label: t("Sales"), count: productSales.length },
+          { id: "movements", label: t("Movements"), count: productMovements.length },
         ]}
       />
 
       {tab === "general" && (
         <DefList
           rows={[
-            ["SKU", product.sku],
-            ["Barcode", product.barcode || "—"],
-            ["Category", product.category],
-            ["Brand", product.brand],
-            ["Supplier", product.supplier],
-            ["Unit", product.unit],
-            ["Purchase price", formatCurrency(product.purchasePrice)],
-            ["Selling price", formatCurrency(product.sellingPrice)],
-            ["Margin", `${margin.toFixed(1)}%`],
-            ["Created", formatDate(product.createdAt)],
-            ...(product.updatedAt ? [["Last updated", formatDate(product.updatedAt)] as [string, string]] : []),
+            [t("SKU"), product.sku],
+            [t("Barcode"), product.barcode || "—"],
+            [t("Category"), product.category],
+            [t("Supplier"), product.supplier],
+            [t("Unit"), product.unit],
+            [t("Purchase price"), formatCurrency(product.purchasePrice)],
+            [t("Selling price"), formatCurrency(product.sellingPrice)],
+            [t("Margin"), `${margin.toFixed(1)}%`],
+            [t("Created"), formatDate(product.createdAt)],
+            ...(product.updatedAt ? [[t("Last updated"), formatDate(product.updatedAt)] as [string, string]] : []),
           ]}
           footer={product.description}
         />
@@ -87,30 +88,30 @@ export function ProductDetailTabs({ product }: { product: Product }) {
       {tab === "inventory" && (
         <DefList
           rows={[
-            ["On hand", `${product.stock} ${product.unit}`],
-            ["Minimum stock", `${product.minStock} ${product.unit}`],
-            ["Stock status", stockText[level]],
-            ["Unit cost", formatCurrency(product.purchasePrice)],
-            ["Inventory value", formatCurrency(product.stock * product.purchasePrice)],
+            [t("On hand"), `${product.stock} ${product.unit}`],
+            [t("Minimum stock"), `${product.minStock} ${product.unit}`],
+            [t("Stock status"), t(stockText[level])],
+            [t("Unit cost"), formatCurrency(product.purchasePrice)],
+            [t("Inventory value"), formatCurrency(product.stock * product.purchasePrice)],
           ]}
         />
       )}
 
-      {tab === "purchases" && <InvoiceList invoices={productPurchases} productId={product.id} empty="No purchases for this product yet." />}
-      {tab === "sales" && <InvoiceList invoices={productSales} productId={product.id} empty="No sales for this product yet." />}
+      {tab === "purchases" && <InvoiceList invoices={productPurchases} productId={product.id} empty={t("No purchases for this product yet.")} />}
+      {tab === "sales" && <InvoiceList invoices={productSales} productId={product.id} empty={t("No sales for this product yet.")} />}
 
       {tab === "movements" && (
         productMovements.length === 0 ? (
-          <EmptyState title="No stock movements" description="Purchases, sales and adjustments will appear here." />
+          <EmptyState title={t("No stock movements")} description={t("Purchases, sales and adjustments will appear here.")} />
         ) : (
           <div className="overflow-hidden rounded-md border border-border">
             <table className="w-full text-sm">
               <thead className="bg-surface-muted text-xs uppercase tracking-wide text-content-muted">
                 <tr>
-                  <th className="px-3 py-2 text-left font-semibold">Date</th>
-                  <th className="px-3 py-2 text-left font-semibold">Type</th>
-                  <th className="px-3 py-2 text-right font-semibold">Change</th>
-                  <th className="px-3 py-2 text-left font-semibold">Reference</th>
+                  <th className="px-3 py-2 text-left font-semibold">{t("Date")}</th>
+                  <th className="px-3 py-2 text-left font-semibold">{t("Type")}</th>
+                  <th className="px-3 py-2 text-right font-semibold">{t("Change")}</th>
+                  <th className="px-3 py-2 text-left font-semibold">{t("Reference")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -137,11 +138,13 @@ export function ProductDetailTabs({ product }: { product: Product }) {
 }
 
 function MovementBadge({ type }: { type: MovementType }) {
+  const { t } = useT();
   const tone = { purchase: "success", sale: "info", adjustment: "warning" } as const;
-  return <Badge tone={tone[type]}>{type}</Badge>;
+  return <Badge tone={tone[type]}>{t(type)}</Badge>;
 }
 
 function DefList({ rows, footer }: { rows: [string, React.ReactNode][]; footer?: string }) {
+  const { t } = useT();
   return (
     <div className="space-y-4">
       <dl className="divide-y divide-border rounded-md border border-border">
@@ -154,7 +157,7 @@ function DefList({ rows, footer }: { rows: [string, React.ReactNode][]; footer?:
       </dl>
       {footer && (
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-subtle">Description</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-subtle">{t("Description")}</p>
           <p className="text-sm text-content-muted">{footer}</p>
         </div>
       )}
@@ -163,18 +166,19 @@ function DefList({ rows, footer }: { rows: [string, React.ReactNode][]; footer?:
 }
 
 function InvoiceList({ invoices, productId, empty }: { invoices: Invoice[]; productId: string; empty: string }) {
+  const { t } = useT();
   if (invoices.length === 0) {
-    return <EmptyState title="Nothing here yet" description={empty} />;
+    return <EmptyState title={t("Nothing here yet")} description={empty} />;
   }
   return (
     <div className="overflow-hidden rounded-md border border-border">
       <table className="w-full text-sm">
         <thead className="bg-surface-muted text-xs uppercase tracking-wide text-content-muted">
           <tr>
-            <th className="px-3 py-2 text-left font-semibold">Reference</th>
-            <th className="px-3 py-2 text-left font-semibold">Party</th>
-            <th className="px-3 py-2 text-right font-semibold">Qty</th>
-            <th className="px-3 py-2 text-right font-semibold">Line total</th>
+            <th className="px-3 py-2 text-left font-semibold">{t("Reference")}</th>
+            <th className="px-3 py-2 text-left font-semibold">{t("Party")}</th>
+            <th className="px-3 py-2 text-right font-semibold">{t("Qty")}</th>
+            <th className="px-3 py-2 text-right font-semibold">{t("Line total")}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">

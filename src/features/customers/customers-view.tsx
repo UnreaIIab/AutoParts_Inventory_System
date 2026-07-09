@@ -27,6 +27,7 @@ import { useCollection } from "@/lib/store/hooks";
 import { db } from "@/lib/store/db";
 import type { Customer } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import {
   ContactForm,
   InfoTile,
@@ -43,6 +44,7 @@ type DialogState =
 
 export function CustomersView() {
   const toast = useToast();
+  const { t } = useT();
   const customers = useCollection(db.customers);
   const sales = useCollection(db.sales);
 
@@ -78,9 +80,9 @@ export function CustomersView() {
 
   const save = () => {
     const errs: Record<string, string> = {};
-    if (form.name.trim().length < 2) errs.name = "Name is required";
+    if (form.name.trim().length < 2) errs.name = t("Name is required");
     if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email))
-      errs.email = "Enter a valid email";
+      errs.email = t("Enter a valid email");
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
@@ -90,7 +92,7 @@ export function CustomersView() {
     };
     if (dialog?.type === "edit") {
       db.customers.update(dialog.customer.id, data);
-      toast.success("Customer updated", form.name);
+      toast.success(t("Customer updated"), form.name);
     } else {
       db.customers.create({
         ...data,
@@ -99,7 +101,7 @@ export function CustomersView() {
         balance: 0,
         createdAt: new Date().toISOString(),
       });
-      toast.success("Customer created", form.name);
+      toast.success(t("Customer created"), form.name);
     }
     setDialog(null);
   };
@@ -107,13 +109,13 @@ export function CustomersView() {
   const confirmDelete = () => {
     if (!deleteTarget) return;
     db.customers.remove(deleteTarget.id);
-    toast.success("Customer deleted", deleteTarget.name);
+    toast.success(t("Customer deleted"), deleteTarget.name);
     setDeleteTarget(null);
   };
 
   const columns: Column<Customer>[] = [
     {
-      key: "name", header: "Customer", sortable: true, accessor: (c) => c.name,
+      key: "name", header: t("Customer"), sortable: true, accessor: (c) => c.name,
       cell: (c) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
@@ -126,15 +128,15 @@ export function CustomersView() {
         </div>
       ),
     },
-    { key: "city", header: "City", sortable: true, accessor: (c) => c.city },
-    { key: "totalOrders", header: "Orders", align: "right", sortable: true, accessor: (c) => c.totalOrders },
+    { key: "city", header: t("City"), sortable: true, accessor: (c) => c.city },
+    { key: "totalOrders", header: t("Orders"), align: "right", sortable: true, accessor: (c) => c.totalOrders },
     {
-      key: "totalSpent", header: "Total Spent", align: "right", sortable: true,
+      key: "totalSpent", header: t("Total Spent"), align: "right", sortable: true,
       accessor: (c) => c.totalSpent,
       cell: (c) => <span className="font-medium">{formatCurrency(c.totalSpent)}</span>,
     },
     {
-      key: "balance", header: "Balance", align: "right", sortable: true,
+      key: "balance", header: t("Balance"), align: "right", sortable: true,
       accessor: (c) => c.balance,
       cell: (c) =>
         c.balance > 0 ? (
@@ -148,11 +150,11 @@ export function CustomersView() {
   return (
     <>
       <PageHeader
-        title="Customers"
-        subtitle={`${customers.length} customers`}
+        title={t("Customers")}
+        subtitle={t("{n} customers", { n: customers.length })}
         actions={
           <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-            New Customer
+            {t("New Customer")}
           </Button>
         }
       />
@@ -163,7 +165,7 @@ export function CustomersView() {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search customers…"
+              placeholder={t("Search customers…")}
               leftIcon={<Search className="h-4 w-4" />}
             />
           </div>
@@ -184,23 +186,23 @@ export function CustomersView() {
                 }
               >
                 <DropdownItem icon={<Eye className="h-4 w-4" />} onClick={() => setViewing(c)}>
-                  View details
+                  {t("View details")}
                 </DropdownItem>
                 <DropdownItem icon={<Pencil className="h-4 w-4" />} onClick={() => openEdit(c)}>
-                  Edit
+                  {t("Edit")}
                 </DropdownItem>
                 <DropdownDivider />
                 <DropdownItem tone="danger" icon={<Trash2 className="h-4 w-4" />} onClick={() => setDeleteTarget(c)}>
-                  Delete
+                  {t("Delete")}
                 </DropdownItem>
               </Dropdown>
             )}
             emptyState={
               <EmptyState
                 icon={<Users className="h-6 w-6" />}
-                title="No customers found"
-                description="Add customers to track sales and balances."
-                action={<Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>New Customer</Button>}
+                title={t("No customers found")}
+                description={t("Add customers to track sales and balances.")}
+                action={<Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>{t("New Customer")}</Button>}
               />
             }
           />
@@ -210,11 +212,11 @@ export function CustomersView() {
       <Dialog
         open={!!dialog}
         onClose={() => setDialog(null)}
-        title={dialog?.type === "edit" ? "Edit customer" : "New customer"}
+        title={dialog?.type === "edit" ? t("Edit customer") : t("New customer")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setDialog(null)}>Cancel</Button>
-            <Button onClick={save}>{dialog?.type === "edit" ? "Save changes" : "Create"}</Button>
+            <Button variant="secondary" onClick={() => setDialog(null)}>{t("Cancel")}</Button>
+            <Button onClick={save}>{dialog?.type === "edit" ? t("Save changes") : t("Create")}</Button>
           </>
         }
       >
@@ -225,12 +227,12 @@ export function CustomersView() {
         open={!!viewing}
         onClose={() => setViewing(null)}
         title={viewing?.name}
-        description={viewing ? `Customer since ${formatDate(viewing.createdAt)}` : ""}
+        description={viewing ? t("Customer since {date}", { date: formatDate(viewing.createdAt) }) : ""}
         footer={
           viewing && (
             <>
-              <Button variant="secondary" onClick={() => setViewing(null)}>Close</Button>
-              <Button icon={<Pencil className="h-4 w-4" />} onClick={() => { openEdit(viewing); setViewing(null); }}>Edit</Button>
+              <Button variant="secondary" onClick={() => setViewing(null)}>{t("Close")}</Button>
+              <Button icon={<Pencil className="h-4 w-4" />} onClick={() => { openEdit(viewing); setViewing(null); }}>{t("Edit")}</Button>
             </>
           )
         }
@@ -247,8 +249,8 @@ export function CustomersView() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
-        title="Delete customer"
-        message={`This will permanently remove “${deleteTarget?.name}”.`}
+        title={t("Delete customer")}
+        message={t('This will permanently remove “{name}”.', { name: deleteTarget?.name ?? "" })}
       />
     </>
   );
@@ -261,20 +263,21 @@ function CustomerDetailTabs({
   customer: Customer;
   sales: { id: string; reference: string; date: string; total: number }[];
 }) {
+  const { t } = useT();
   const [tab, setTab] = React.useState("profile");
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <InfoTile icon={<Receipt className="h-4 w-4" />} label="Total Spent" value={formatCurrency(customer.totalSpent)} />
-        <InfoTile icon={<Wallet className="h-4 w-4" />} label="Balance" value={formatCurrency(customer.balance)} />
+        <InfoTile icon={<Receipt className="h-4 w-4" />} label={t("Total Spent")} value={formatCurrency(customer.totalSpent)} />
+        <InfoTile icon={<Wallet className="h-4 w-4" />} label={t("Balance")} value={formatCurrency(customer.balance)} />
       </div>
 
       <Tabs
         active={tab}
         onChange={setTab}
         tabs={[
-          { id: "profile", label: "Profile" },
-          { id: "sales", label: "Sales History", count: sales.length },
+          { id: "profile", label: t("Profile") },
+          { id: "sales", label: t("Sales History"), count: sales.length },
         ]}
       />
 
@@ -283,7 +286,7 @@ function CustomerDetailTabs({
           <ContactBlock email={customer.email} phone={customer.phone} city={customer.city} address={customer.address} />
           {customer.notes && (
             <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-subtle">Notes</p>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-content-subtle">{t("Notes")}</p>
               <p className="text-sm text-content-muted">{customer.notes}</p>
             </div>
           )}
@@ -291,9 +294,9 @@ function CustomerDetailTabs({
       )}
 
       {tab === "sales" && (
-        <Section title={`Sales history (${sales.length})`}>
+        <Section title={t("Sales history ({n})", { n: sales.length })}>
           {sales.length === 0 ? (
-            <p className="px-4 py-3 text-sm text-content-muted">No sales yet.</p>
+            <p className="px-4 py-3 text-sm text-content-muted">{t("No sales yet.")}</p>
           ) : (
             <ul className="divide-y divide-border">
               {sales.map((s) => (

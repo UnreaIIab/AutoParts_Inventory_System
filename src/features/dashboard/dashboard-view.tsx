@@ -6,7 +6,6 @@ import {
   Boxes,
   Package,
   Tags,
-  Award,
   Truck,
   Users,
   DollarSign,
@@ -32,6 +31,7 @@ import { db } from "@/lib/store/db";
 import { lineTotal } from "@/features/invoices/invoice-engine";
 import { stockLevel } from "@/features/products/product-schema";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 function lastMonths(n: number) {
   const out: { key: string; label: string }[] = [];
@@ -47,9 +47,9 @@ function lastMonths(n: number) {
 }
 
 export function DashboardView() {
+  const { t } = useT();
   const products = useCollection(db.products);
   const categories = useCollection(db.categories);
-  const brands = useCollection(db.brands);
   const suppliers = useCollection(db.suppliers);
   const customers = useCollection(db.customers);
   const sales = useCollection(db.sales);
@@ -118,58 +118,57 @@ export function DashboardView() {
 
   return (
     <>
-      <PageHeader title="Dashboard" subtitle="Overview of inventory, sales and purchasing activity" />
+      <PageHeader title={t("Dashboard")} subtitle={t("Overview of inventory, sales and purchasing activity")} />
 
       <div className="space-y-5 p-5">
         {/* KPI grid — 11 metrics */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <StatCard label="Total Products" value={String(products.length)} icon={<Package className="h-5 w-5" />} tone="primary" />
-          <StatCard label="Inventory Value" value={formatCurrency(inventoryValue)} icon={<Boxes className="h-5 w-5" />} tone="info" />
-          <StatCard label="Categories" value={String(categories.length)} icon={<Tags className="h-5 w-5" />} tone="primary" />
-          <StatCard label="Brands" value={String(brands.length)} icon={<Award className="h-5 w-5" />} tone="info" />
-          <StatCard label="Suppliers" value={String(suppliers.length)} icon={<Truck className="h-5 w-5" />} tone="primary" />
-          <StatCard label="Customers" value={String(customers.length)} icon={<Users className="h-5 w-5" />} tone="info" />
-          <StatCard label="Today's Sales" value={formatCurrency(todaysSales)} icon={<DollarSign className="h-5 w-5" />} tone="success" />
-          <StatCard label="Monthly Revenue" value={formatCurrency(monthlyRevenue)} icon={<TrendingUp className="h-5 w-5" />} tone="success" />
-          <StatCard label="Monthly Purchases" value={formatCurrency(monthlyPurchases)} icon={<ShoppingCart className="h-5 w-5" />} tone="info" />
-          <StatCard label="Low Stock Items" value={String(lowStock.length)} icon={<AlertTriangle className="h-5 w-5" />} tone="warning" />
-          <StatCard label="Out of Stock" value={String(outOfStock.length)} icon={<XCircle className="h-5 w-5" />} tone="danger" />
-          <StatCard label="Below Minimum" value={String(belowMin.length)} icon={<AlertTriangle className="h-5 w-5" />} tone="warning" />
+          <StatCard label={t("Total Products")} value={String(products.length)} icon={<Package className="h-5 w-5" />} tone="primary" />
+          <StatCard label={t("Inventory Value")} value={formatCurrency(inventoryValue)} icon={<Boxes className="h-5 w-5" />} tone="info" />
+          <StatCard label={t("Categories")} value={String(categories.length)} icon={<Tags className="h-5 w-5" />} tone="primary" />
+          <StatCard label={t("Suppliers")} value={String(suppliers.length)} icon={<Truck className="h-5 w-5" />} tone="primary" />
+          <StatCard label={t("Customers")} value={String(customers.length)} icon={<Users className="h-5 w-5" />} tone="info" />
+          <StatCard label={t("Today's Sales")} value={formatCurrency(todaysSales)} icon={<DollarSign className="h-5 w-5" />} tone="success" />
+          <StatCard label={t("Monthly Revenue")} value={formatCurrency(monthlyRevenue)} icon={<TrendingUp className="h-5 w-5" />} tone="success" />
+          <StatCard label={t("Monthly Purchases")} value={formatCurrency(monthlyPurchases)} icon={<ShoppingCart className="h-5 w-5" />} tone="info" />
+          <StatCard label={t("Low Stock Items")} value={String(lowStock.length)} icon={<AlertTriangle className="h-5 w-5" />} tone="warning" />
+          <StatCard label={t("Out of Stock")} value={String(outOfStock.length)} icon={<XCircle className="h-5 w-5" />} tone="danger" />
+          <StatCard label={t("Below Minimum")} value={String(belowMin.length)} icon={<AlertTriangle className="h-5 w-5" />} tone="warning" />
         </div>
 
         {/* Alerts */}
         {(lowStock.length > 0 || outOfStock.length > 0) && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <AlertCard tone="danger" icon={<XCircle className="h-5 w-5" />} title="Out of Stock" count={outOfStock.length} note="products need restocking" />
-            <AlertCard tone="warning" icon={<AlertTriangle className="h-5 w-5" />} title="Low Stock" count={lowStock.length} note="products below threshold" />
-            <AlertCard tone="warning" icon={<AlertTriangle className="h-5 w-5" />} title="Below Minimum" count={belowMin.length} note="products under min quantity" />
+            <AlertCard tone="danger" icon={<XCircle className="h-5 w-5" />} title={t("Out of Stock")} count={outOfStock.length} note={t("products need restocking")} />
+            <AlertCard tone="warning" icon={<AlertTriangle className="h-5 w-5" />} title={t("Low Stock")} count={lowStock.length} note={t("products below threshold")} />
+            <AlertCard tone="warning" icon={<AlertTriangle className="h-5 w-5" />} title={t("Below Minimum")} count={belowMin.length} note={t("products under min quantity")} />
           </div>
         )}
 
         {/* Charts row 1 */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <ChartCard title="Monthly Sales">
+          <ChartCard title={t("Monthly Sales")}>
             <SalesLineChart labels={months.map((m) => m.label)} values={salesByMonth} />
           </ChartCard>
-          <ChartCard title="Monthly Purchases">
+          <ChartCard title={t("Monthly Purchases")}>
             <PurchasesBarChart labels={months.map((m) => m.label)} values={purchasesByMonth} />
           </ChartCard>
         </div>
 
         {/* Charts row 2 */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <ChartCard title="Revenue Trend">
+          <ChartCard title={t("Revenue Trend")}>
             <SalesLineChart labels={months.map((m) => m.label)} values={revenueTrend} />
           </ChartCard>
-          <ChartCard title="Inventory Value Trend">
+          <ChartCard title={t("Inventory Value Trend")}>
             <SalesLineChart labels={months.map((m) => m.label)} values={inventoryTrend} />
           </ChartCard>
-          <ChartCard title="Best Selling Products">
+          <ChartCard title={t("Best Selling Products")}>
             {bestSellers.length > 0 ? (
               <BestSellersBar labels={bestSellers.map((b) => b.name)} values={bestSellers.map((b) => b.units)} />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-content-subtle">
-                No sales recorded yet
+                {t("No sales recorded yet")}
               </div>
             )}
           </ChartCard>
@@ -177,16 +176,16 @@ export function DashboardView() {
 
         {/* Recent activity */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <InvoiceFeed title="Latest Sales" href="/sales" rows={latestSales} />
-          <InvoiceFeed title="Latest Purchases" href="/purchases" rows={latestPurchases} />
+          <InvoiceFeed title={t("Latest Sales")} href="/sales" rows={latestSales} />
+          <InvoiceFeed title={t("Latest Purchases")} href="/purchases" rows={latestPurchases} />
           <ProductFeed
-            title="Recently Added Products"
+            title={t("Recently Added Products")}
             href="/products"
             icon={<PackagePlus className="h-4 w-4" />}
             rows={recentlyAdded.map((p) => ({ id: p.id, name: p.name, sub: p.sku, date: p.createdAt }))}
           />
           <ProductFeed
-            title="Recently Updated Products"
+            title={t("Recently Updated Products")}
             href="/products"
             icon={<PencilRuler className="h-4 w-4" />}
             rows={recentlyUpdated.map((p) => ({ id: p.id, name: p.name, sub: p.sku, date: p.updatedAt! }))}
@@ -247,17 +246,18 @@ function InvoiceFeed({
   href: string;
   rows: { id: string; reference: string; partyName: string; date: string; total: number; status: "draft" | "confirmed" | "paid" }[];
 }) {
+  const { t } = useT();
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <Link href={href} className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-          View all <ArrowRight className="h-3.5 w-3.5" />
+          {t("View all")} <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </CardHeader>
       <CardContent className="p-0">
         {rows.length === 0 ? (
-          <p className="px-5 py-6 text-center text-sm text-content-muted">Nothing yet.</p>
+          <p className="px-5 py-6 text-center text-sm text-content-muted">{t("Nothing yet.")}</p>
         ) : (
           <ul className="divide-y divide-border">
             {rows.map((r) => (
@@ -268,7 +268,7 @@ function InvoiceFeed({
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-sm font-semibold text-content">{formatCurrency(r.total)}</span>
-                  <Badge tone={statusTone[r.status]}>{r.status}</Badge>
+                  <Badge tone={statusTone[r.status]}>{t(r.status)}</Badge>
                 </div>
               </li>
             ))}
@@ -290,17 +290,18 @@ function ProductFeed({
   icon: React.ReactNode;
   rows: { id: string; name: string; sub: string; date: string }[];
 }) {
+  const { t } = useT();
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <Link href={href} className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-          View all <ArrowRight className="h-3.5 w-3.5" />
+          {t("View all")} <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </CardHeader>
       <CardContent className="p-0">
         {rows.length === 0 ? (
-          <p className="px-5 py-6 text-center text-sm text-content-muted">Nothing yet.</p>
+          <p className="px-5 py-6 text-center text-sm text-content-muted">{t("Nothing yet.")}</p>
         ) : (
           <ul className="divide-y divide-border">
             {rows.map((r) => (

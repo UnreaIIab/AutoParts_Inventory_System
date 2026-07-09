@@ -15,11 +15,13 @@ import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
+import { useT } from "@/lib/i18n";
 
 export function Topbar() {
   const { setMobileOpen } = useSidebar();
   const toast = useToast();
   const router = useRouter();
+  const { t } = useT();
   const [changePw, setChangePw] = React.useState(false);
 
   return (
@@ -50,7 +52,7 @@ export function Topbar() {
                   Ayoub Fellat
                 </span>
                 <span className="block text-xs leading-tight text-content-muted">
-                  Administrator
+                  {t("Administrator")}
                 </span>
               </span>
             </button>
@@ -61,21 +63,21 @@ export function Topbar() {
             <p className="text-xs text-content-muted">ayoubfellat2016@gmail.com</p>
           </div>
           <DropdownItem icon={<User className="h-4 w-4" />} onClick={() => router.push("/profile")}>
-            My Profile
+            {t("My Profile")}
           </DropdownItem>
           <DropdownItem icon={<UserCog className="h-4 w-4" />} onClick={() => router.push("/settings?tab=company")}>
-            Account Settings
+            {t("Account Settings")}
           </DropdownItem>
           <DropdownItem icon={<Lock className="h-4 w-4" />} onClick={() => setChangePw(true)}>
-            Change Password
+            {t("Change Password")}
           </DropdownItem>
           <DropdownDivider />
           <DropdownItem
             tone="danger"
             icon={<LogOut className="h-4 w-4" />}
-            onClick={() => toast.toast({ tone: "info", title: "Sign out", description: "Authentication arrives with the Supabase integration." })}
+            onClick={() => toast.toast({ tone: "info", title: t("Logout"), description: "Authentication arrives with the Supabase integration." })}
           >
-            Logout
+            {t("Logout")}
           </DropdownItem>
         </Dropdown>
       </div>
@@ -84,32 +86,32 @@ export function Topbar() {
       <Dialog
         open={changePw}
         onClose={() => setChangePw(false)}
-        title="Change password"
+        title={t("Change password")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setChangePw(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setChangePw(false)}>{t("Cancel")}</Button>
             <Button
               onClick={() => {
                 setChangePw(false);
-                toast.success("Password updated", "Your password has been changed.");
+                toast.success(t("Password updated"), t("Your password has been changed."));
               }}
             >
-              Update password
+              {t("Update password")}
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <div>
-            <Label required>Current password</Label>
+            <Label required>{t("Current password")}</Label>
             <Input type="password" placeholder="••••••••" />
           </div>
           <div>
-            <Label required>New password</Label>
+            <Label required>{t("New password")}</Label>
             <Input type="password" placeholder="••••••••" />
           </div>
           <div>
-            <Label required>Confirm new password</Label>
+            <Label required>{t("Confirm new password")}</Label>
             <Input type="password" placeholder="••••••••" />
           </div>
         </div>

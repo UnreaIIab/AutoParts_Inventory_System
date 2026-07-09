@@ -12,6 +12,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import { useCollection } from "@/lib/store/hooks";
 import { db } from "@/lib/store/db";
 import type { Product, Customer, Supplier, Invoice } from "@/lib/types";
@@ -78,6 +79,7 @@ function buildIndex(
 
 export function GlobalSearch() {
   const router = useRouter();
+  const { t } = useT();
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [mounted, setMounted] = React.useState(false);
@@ -140,7 +142,7 @@ export function GlobalSearch() {
         className="flex h-9 w-full max-w-md items-center gap-2 rounded-md border border-border bg-surface-muted px-3 text-sm text-content-subtle transition-colors hover:border-content-subtle"
       >
         <Search className="h-4 w-4" />
-        <span className="flex-1 text-left">Search anything…</span>
+        <span className="flex-1 text-left">{t("Search anything…")}</span>
         <kbd className="hidden rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-content-muted sm:inline">
           ⌘K
         </kbd>
@@ -161,24 +163,24 @@ export function GlobalSearch() {
                   autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search products, customers, invoices, SKU, barcode…"
+                  placeholder={t("Search products, customers, invoices, SKU, barcode…")}
                   className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-content-subtle"
                 />
               </div>
               <div className="max-h-[50vh] overflow-y-auto p-2">
                 {query.trim() === "" ? (
                   <p className="px-3 py-8 text-center text-sm text-content-subtle">
-                    Start typing to search across the system.
+                    {t("Start typing to search across the system.")}
                   </p>
                 ) : results.length === 0 ? (
                   <p className="px-3 py-8 text-center text-sm text-content-subtle">
-                    No results for “{query}”.
+                    {t("No results for")} “{query}”.
                   </p>
                 ) : (
                   grouped.map(([group, items]) => (
                     <div key={group} className="mb-1">
                       <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-content-subtle">
-                        {group}
+                        {t(group)}
                       </p>
                       {items.map((r) => (
                         <button

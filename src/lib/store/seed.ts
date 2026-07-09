@@ -1,7 +1,6 @@
 import type {
   Product,
   Category,
-  Brand,
   Customer,
   Supplier,
   Invoice,
@@ -20,19 +19,6 @@ export const categorySeed: Category[] = [
   { id: "cat9", name: "Transmission", description: "Clutches, gearbox parts" },
 ];
 
-export const brandSeed: Brand[] = [
-  { id: "br1", name: "Bosch" },
-  { id: "br2", name: "Mann" },
-  { id: "br3", name: "NGK" },
-  { id: "br4", name: "Gates" },
-  { id: "br5", name: "Monroe" },
-  { id: "br6", name: "Valeo" },
-  { id: "br7", name: "Prestone" },
-  { id: "br8", name: "LUK" },
-  { id: "br9", name: "Philips" },
-  { id: "br10", name: "Brembo" },
-];
-
 export const supplierSeed: Supplier[] = [
   { id: "s1", name: "AutoZone Distribution", email: "orders@autozonedist.com", phone: "+1 555 0300", city: "Memphis", address: "455 Logistics Pkwy, Memphis, TN", contactPerson: "Dana Reyes", taxNumber: "US-84-2213391", notes: "Preferred brake & wiper supplier. Net 30.", productsSupplied: 4, totalPurchased: 84200, createdAt: "2025-11-02" },
   { id: "s2", name: "Global Parts Co.", email: "supply@globalparts.com", phone: "+1 555 0322", city: "Houston", address: "12 Harbor Rd, Houston, TX", contactPerson: "Omar Haddad", taxNumber: "US-77-9012774", notes: "Bulk filters and fluids.", productsSupplied: 4, totalPurchased: 61300, createdAt: "2025-12-14" },
@@ -48,18 +34,18 @@ export const customerSeed: Customer[] = [
 ];
 
 export const productSeed: Product[] = [
-  { id: "p1", name: "Brake Pad Set — Front", sku: "BRK-FP-001", barcode: "7290001112221", category: "Brakes", brand: "Bosch", supplier: "AutoZone Distribution", purchasePrice: 22.5, sellingPrice: 39.9, stock: 148, minStock: 40, unit: "set", location: "A-01-03", status: "active", description: "Ceramic front brake pads, low dust.", createdAt: "2026-01-12", updatedAt: "2026-06-28" },
-  { id: "p2", name: "Oil Filter Premium", sku: "FLT-OIL-014", barcode: "7290001112238", category: "Filters", brand: "Mann", supplier: "Global Parts Co.", purchasePrice: 4.2, sellingPrice: 9.5, stock: 12, minStock: 60, unit: "pcs", location: "B-04-11", status: "active", description: "High-flow spin-on oil filter.", createdAt: "2026-01-20", updatedAt: "2026-07-03" },
-  { id: "p3", name: "Spark Plug Iridium (4pk)", sku: "IGN-SP-220", barcode: "7290001112245", category: "Ignition", brand: "NGK", supplier: "Global Parts Co.", purchasePrice: 14.0, sellingPrice: 28.0, stock: 0, minStock: 30, unit: "pack", location: "C-02-07", status: "active", description: "Long-life iridium spark plugs.", createdAt: "2026-02-02", updatedAt: "2026-07-05" },
-  { id: "p4", name: "Timing Belt Kit", sku: "ENG-TB-088", barcode: "7290001112252", category: "Engine", brand: "Gates", supplier: "PartSupply Intl.", purchasePrice: 48.0, sellingPrice: 89.0, stock: 34, minStock: 15, unit: "kit", location: "D-01-02", status: "active", description: "Complete timing belt kit with tensioner.", createdAt: "2026-02-15" },
-  { id: "p5", name: "Cabin Air Filter", sku: "FLT-CAB-077", barcode: "7290001112269", category: "Filters", brand: "Mann", supplier: "Global Parts Co.", purchasePrice: 6.5, sellingPrice: 15.0, stock: 8, minStock: 25, unit: "pcs", location: "B-04-14", status: "active", description: "Activated carbon cabin filter.", createdAt: "2026-02-28" },
-  { id: "p6", name: "Shock Absorber Rear", sku: "SUS-SA-131", barcode: "7290001112276", category: "Suspension", brand: "Monroe", supplier: "AutoZone Distribution", purchasePrice: 33.0, sellingPrice: 62.0, stock: 56, minStock: 20, unit: "pcs", location: "E-03-05", status: "active", description: "Gas-charged rear shock absorber.", createdAt: "2026-03-05" },
-  { id: "p7", name: "Alternator 90A", sku: "ELC-ALT-045", barcode: "7290001112283", category: "Electrical", brand: "Valeo", supplier: "PartSupply Intl.", purchasePrice: 78.0, sellingPrice: 145.0, stock: 19, minStock: 10, unit: "pcs", location: "F-01-01", status: "active", description: "Remanufactured 90A alternator.", createdAt: "2026-03-12" },
-  { id: "p8", name: 'Wiper Blade Set 24"', sku: "ACC-WB-300", barcode: "7290001112290", category: "Accessories", brand: "Bosch", supplier: "AutoZone Distribution", purchasePrice: 8.0, sellingPrice: 18.5, stock: 210, minStock: 50, unit: "set", location: "G-02-09", status: "active", description: "All-season beam wiper blades.", createdAt: "2026-03-22" },
-  { id: "p9", name: "Radiator Coolant 5L", sku: "FLU-CL-012", barcode: "7290001112306", category: "Fluids", brand: "Prestone", supplier: "Global Parts Co.", purchasePrice: 11.0, sellingPrice: 22.0, stock: 74, minStock: 30, unit: "bottle", location: "H-01-04", status: "active", description: "Long-life ready-to-use coolant.", createdAt: "2026-04-01" },
-  { id: "p10", name: "Clutch Kit Complete", sku: "TRN-CL-159", barcode: "7290001112313", category: "Transmission", brand: "LUK", supplier: "PartSupply Intl.", purchasePrice: 120.0, sellingPrice: 215.0, stock: 6, minStock: 8, unit: "kit", location: "I-02-02", status: "active", description: "Clutch disc, pressure plate and bearing.", createdAt: "2026-04-10" },
-  { id: "p11", name: "Headlight Bulb H7", sku: "ELC-HL-201", barcode: "7290001112320", category: "Electrical", brand: "Philips", supplier: "AutoZone Distribution", purchasePrice: 3.5, sellingPrice: 8.9, stock: 320, minStock: 80, unit: "pcs", location: "F-03-12", status: "active", description: "Standard H7 halogen bulb.", createdAt: "2026-04-19" },
-  { id: "p12", name: "Brake Disc Ventilated", sku: "BRK-DS-050", barcode: "7290001112337", category: "Brakes", brand: "Brembo", supplier: "PartSupply Intl.", purchasePrice: 41.0, sellingPrice: 79.0, stock: 42, minStock: 16, unit: "pcs", location: "A-02-01", status: "active", description: "Ventilated front brake disc.", createdAt: "2026-05-02" },
+  { id: "p1", name: "Brake Pad Set — Front", sku: "BRK-FP-001", barcode: "7290001112221", category: "Brakes", supplier: "AutoZone Distribution", purchasePrice: 22.5, sellingPrice: 39.9, stock: 148, minStock: 40, unit: "set", location: "A-01-03", status: "active", description: "Ceramic front brake pads, low dust.", createdAt: "2026-01-12", updatedAt: "2026-06-28" },
+  { id: "p2", name: "Oil Filter Premium", sku: "FLT-OIL-014", barcode: "7290001112238", category: "Filters", supplier: "Global Parts Co.", purchasePrice: 4.2, sellingPrice: 9.5, stock: 12, minStock: 60, unit: "pcs", location: "B-04-11", status: "active", description: "High-flow spin-on oil filter.", createdAt: "2026-01-20", updatedAt: "2026-07-03" },
+  { id: "p3", name: "Spark Plug Iridium (4pk)", sku: "IGN-SP-220", barcode: "7290001112245", category: "Ignition", supplier: "Global Parts Co.", purchasePrice: 14.0, sellingPrice: 28.0, stock: 0, minStock: 30, unit: "pack", location: "C-02-07", status: "active", description: "Long-life iridium spark plugs.", createdAt: "2026-02-02", updatedAt: "2026-07-05" },
+  { id: "p4", name: "Timing Belt Kit", sku: "ENG-TB-088", barcode: "7290001112252", category: "Engine", supplier: "PartSupply Intl.", purchasePrice: 48.0, sellingPrice: 89.0, stock: 34, minStock: 15, unit: "kit", location: "D-01-02", status: "active", description: "Complete timing belt kit with tensioner.", createdAt: "2026-02-15" },
+  { id: "p5", name: "Cabin Air Filter", sku: "FLT-CAB-077", barcode: "7290001112269", category: "Filters", supplier: "Global Parts Co.", purchasePrice: 6.5, sellingPrice: 15.0, stock: 8, minStock: 25, unit: "pcs", location: "B-04-14", status: "active", description: "Activated carbon cabin filter.", createdAt: "2026-02-28" },
+  { id: "p6", name: "Shock Absorber Rear", sku: "SUS-SA-131", barcode: "7290001112276", category: "Suspension", supplier: "AutoZone Distribution", purchasePrice: 33.0, sellingPrice: 62.0, stock: 56, minStock: 20, unit: "pcs", location: "E-03-05", status: "active", description: "Gas-charged rear shock absorber.", createdAt: "2026-03-05" },
+  { id: "p7", name: "Alternator 90A", sku: "ELC-ALT-045", barcode: "7290001112283", category: "Electrical", supplier: "PartSupply Intl.", purchasePrice: 78.0, sellingPrice: 145.0, stock: 19, minStock: 10, unit: "pcs", location: "F-01-01", status: "active", description: "Remanufactured 90A alternator.", createdAt: "2026-03-12" },
+  { id: "p8", name: 'Wiper Blade Set 24"', sku: "ACC-WB-300", barcode: "7290001112290", category: "Accessories", supplier: "AutoZone Distribution", purchasePrice: 8.0, sellingPrice: 18.5, stock: 210, minStock: 50, unit: "set", location: "G-02-09", status: "active", description: "All-season beam wiper blades.", createdAt: "2026-03-22" },
+  { id: "p9", name: "Radiator Coolant 5L", sku: "FLU-CL-012", barcode: "7290001112306", category: "Fluids", supplier: "Global Parts Co.", purchasePrice: 11.0, sellingPrice: 22.0, stock: 74, minStock: 30, unit: "bottle", location: "H-01-04", status: "active", description: "Long-life ready-to-use coolant.", createdAt: "2026-04-01" },
+  { id: "p10", name: "Clutch Kit Complete", sku: "TRN-CL-159", barcode: "7290001112313", category: "Transmission", supplier: "PartSupply Intl.", purchasePrice: 120.0, sellingPrice: 215.0, stock: 6, minStock: 8, unit: "kit", location: "I-02-02", status: "active", description: "Clutch disc, pressure plate and bearing.", createdAt: "2026-04-10" },
+  { id: "p11", name: "Headlight Bulb H7", sku: "ELC-HL-201", barcode: "7290001112320", category: "Electrical", supplier: "AutoZone Distribution", purchasePrice: 3.5, sellingPrice: 8.9, stock: 320, minStock: 80, unit: "pcs", location: "F-03-12", status: "active", description: "Standard H7 halogen bulb.", createdAt: "2026-04-19" },
+  { id: "p12", name: "Brake Disc Ventilated", sku: "BRK-DS-050", barcode: "7290001112337", category: "Brakes", supplier: "PartSupply Intl.", purchasePrice: 41.0, sellingPrice: 79.0, stock: 42, minStock: 16, unit: "pcs", location: "A-02-01", status: "active", description: "Ventilated front brake disc.", createdAt: "2026-05-02" },
 ];
 
 export const salesSeed: Invoice[] = [

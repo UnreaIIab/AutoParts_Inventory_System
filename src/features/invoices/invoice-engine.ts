@@ -8,6 +8,15 @@ function direction(kind: InvoiceKind) {
   return kind === "purchase" ? 1 : -1;
 }
 
+function round2(n: number) {
+  return Math.round(n * 100) / 100;
+}
+
+/** Net cost of one unit on a line, after its discount. */
+function unitCost(line: InvoiceLine) {
+  return line.quantity > 0 ? lineTotal(line) / line.quantity : 0;
+}
+
 /**
  * For a sale, verify every line can be fulfilled from available stock.
  * Returns the name of the first product that can't, or null if all OK.
@@ -22,15 +31,38 @@ export function findUnfulfillable(lines: InvoiceLine[]): string | null {
   return null;
 }
 
-/** Apply an invoice's stock effect and record a movement per line. */
+/**
+ * Apply an invoice's stock effect and record a movement per line.
+ *
+ * Purchases also update the product's cost using the **Weighted Average Cost**
+ * (moving average) method: the on-hand value and the newly received value are
+ * blended, so `purchasePrice` always reflects the average cost of stock on hand.
+ * Sales do NOT change the cost (selling doesn't alter unit cost under WAC).
+ */
 export function applyInvoiceStock(kind: InvoiceKind, invoice: Invoice) {
   const dir = direction(kind);
   for (const line of invoice.lines) {
     const product = db.products.getById(line.productId);
     if (!product) continue;
-    db.products.update(product.id, {
+
+    const patch: { stock: number; purchasePrice?: number } = {
       stock: product.stock + dir * line.quantity,
-    });
+    };
+
+    if (kind === "purchase") {
+      const onHand = Math.max(0, product.stock);
+      const received = line.quantity;
+      const newQty = onHand + received;
+      const cost = unitCost(line);
+      const newAvg =
+        newQty > 0
+          ? (onHand * product.purchasePrice + received * cost) / newQty
+          : cost;
+      patch.purchasePrice = round2(newAvg);
+    }
+
+    db.products.update(product.id, patch);
+
     db.movements.create({
       productId: line.productId,
       productName: line.productName,
@@ -38,20 +70,42 @@ export function applyInvoiceStock(kind: InvoiceKind, invoice: Invoice) {
       quantity: dir * line.quantity,
       reference: invoice.reference,
       date: invoice.date,
+      note:
+        kind === "purchase"
+          ? `Received @ ${round2(unitCost(line))} DH · avg cost ${patch.purchasePrice} DH`
+          : undefined,
     });
   }
   updateParty(kind, invoice, 1);
 }
 
-/** Reverse a previously applied invoice (used when deleting a confirmed one). */
+/**
+ * Reverse a previously applied invoice (used when deleting a confirmed one).
+ * For purchases we also un-blend the weighted-average cost as a best effort
+ * (exact when it was the most recent movement).
+ */
 export function reverseInvoiceStock(kind: InvoiceKind, invoice: Invoice) {
   const dir = direction(kind);
   for (const line of invoice.lines) {
     const product = db.products.getById(line.productId);
     if (!product) continue;
-    db.products.update(product.id, {
+
+    const patch: { stock: number; purchasePrice?: number } = {
       stock: product.stock - dir * line.quantity,
-    });
+    };
+
+    if (kind === "purchase") {
+      const curQty = product.stock;
+      const remaining = curQty - line.quantity;
+      if (remaining > 0) {
+        const cost = unitCost(line);
+        const newAvg =
+          (curQty * product.purchasePrice - line.quantity * cost) / remaining;
+        patch.purchasePrice = round2(Math.max(0, newAvg));
+      }
+    }
+
+    db.products.update(product.id, patch);
   }
   db.movements
     .list()

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
+import { useT } from "@/lib/i18n";
 
 interface DialogProps {
   open: boolean;
@@ -89,9 +90,10 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmLabel = "Delete",
+  confirmLabel,
   loading,
 }: ConfirmDialogProps) {
+  const { t } = useT();
   return (
     <Dialog
       open={open}
@@ -100,10 +102,10 @@ export function ConfirmDialog({
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={loading}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button variant="danger" onClick={onConfirm} loading={loading}>
-            {confirmLabel}
+            {confirmLabel ?? t("Delete")}
           </Button>
         </>
       }

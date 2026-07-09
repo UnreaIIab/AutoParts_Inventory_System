@@ -15,6 +15,7 @@ import { useCollection } from "@/lib/store/hooks";
 import { db } from "@/lib/store/db";
 import { stockLevel } from "@/features/products/product-schema";
 import { formatDate } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 interface Notice {
   id: string;
@@ -26,6 +27,7 @@ interface Notice {
 }
 
 export function Notifications() {
+  const { t } = useT();
   const products = useCollection(db.products);
   const sales = useCollection(db.sales);
   const purchases = useCollection(db.purchases);
@@ -130,10 +132,10 @@ export function Notifications() {
         <div className="absolute right-0 z-40 mt-2 w-80 overflow-hidden rounded-md border border-border bg-surface shadow-dropdown animate-fade-in">
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <p className="text-sm font-semibold text-content">
-              Notifications
+              {t("Notifications")}
               {unread.length > 0 && (
                 <span className="ml-1.5 text-xs font-normal text-content-muted">
-                  {unread.length} new
+                  {t("{n} new", { n: unread.length })}
                 </span>
               )}
             </p>
@@ -143,7 +145,7 @@ export function Notifications() {
                 className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
               >
                 <CheckCheck className="h-3.5 w-3.5" />
-                Mark all read
+                {t("Mark all read")}
               </button>
             )}
           </div>
@@ -152,8 +154,8 @@ export function Notifications() {
             {notices.length === 0 ? (
               <div className="flex flex-col items-center justify-center px-6 py-10 text-center">
                 <BellOff className="mb-2 h-8 w-8 text-content-subtle" />
-                <p className="text-sm font-medium text-content">All caught up</p>
-                <p className="text-xs text-content-muted">No notifications right now.</p>
+                <p className="text-sm font-medium text-content">{t("All caught up")}</p>
+                <p className="text-xs text-content-muted">{t("No notifications right now.")}</p>
               </div>
             ) : (
               <ul className="divide-y divide-border">
@@ -171,7 +173,7 @@ export function Notifications() {
                         {n.icon}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-content">{n.title}</p>
+                        <p className="text-sm font-medium text-content">{t(n.title)}</p>
                         <p className="text-xs text-content-muted">{n.message}</p>
                         {n.date && (
                           <p className="mt-0.5 text-[11px] text-content-subtle">{formatDate(n.date)}</p>

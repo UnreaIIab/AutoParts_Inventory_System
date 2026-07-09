@@ -20,6 +20,7 @@ import { Dropdown, DropdownItem, DropdownDivider } from "@/components/ui/dropdow
 import { EmptyState } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
 import { useCollection } from "@/lib/store/hooks";
+import { useT } from "@/lib/i18n";
 import type { Collection } from "@/lib/store/collection";
 
 interface NamedEntity {
@@ -52,6 +53,7 @@ export function EntityManager<T extends NamedEntity>({
   withLogo,
 }: EntityManagerProps<T>) {
   const toast = useToast();
+  const { t } = useT();
   const items = useCollection(collection);
   const [editing, setEditing] = React.useState<T | null>(null);
   const [creating, setCreating] = React.useState(false);
@@ -93,7 +95,7 @@ export function EntityManager<T extends NamedEntity>({
 
   const save = () => {
     if (name.trim().length < 2) {
-      setError("Name must be at least 2 characters");
+      setError(t("Name must be at least 2 characters"));
       return;
     }
     const payload = {
@@ -103,17 +105,17 @@ export function EntityManager<T extends NamedEntity>({
     } as Partial<T>;
     if (editing) {
       collection.update(editing.id, payload);
-      toast.success(`${singular} updated`, name.trim());
+      toast.success(t(`${singular} updated`), name.trim());
     } else {
       collection.create(payload as Omit<T, "id">);
-      toast.success(`${singular} created`, name.trim());
+      toast.success(t(`${singular} created`), name.trim());
     }
     close();
   };
 
   const toggleArchive = (item: T) => {
     collection.update(item.id, { archived: !item.archived } as Partial<T>);
-    toast.success(item.archived ? `${singular} restored` : `${singular} archived`, item.name);
+    toast.success(item.archived ? t(`${singular} restored`) : t(`${singular} archived`), item.name);
   };
 
   const confirmDelete = () => {
@@ -126,7 +128,7 @@ export function EntityManager<T extends NamedEntity>({
   return (
     <Card className="p-0">
       <CardHeader>
-        <CardTitle>{plural}</CardTitle>
+        <CardTitle>{t(plural)}</CardTitle>
         <div className="flex items-center gap-2">
           {archivable && (
             <Button
@@ -135,11 +137,11 @@ export function EntityManager<T extends NamedEntity>({
               icon={<Archive className="h-4 w-4" />}
               onClick={() => setShowArchived((s) => !s)}
             >
-              {showArchived ? "Hide archived" : "Show archived"}
+              {showArchived ? t("Hide archived") : t("Show archived")}
             </Button>
           )}
           <Button size="sm" icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-            New {singular}
+            {t(`New ${singular}`)}
           </Button>
         </div>
       </CardHeader>
@@ -147,11 +149,11 @@ export function EntityManager<T extends NamedEntity>({
         {visible.length === 0 ? (
           <EmptyState
             icon={icon}
-            title={`No ${plural.toLowerCase()} yet`}
-            description={`Create your first ${singular.toLowerCase()} to organize products.`}
+            title={t(`No ${plural.toLowerCase()} yet`)}
+            description={t(`Create your first ${singular.toLowerCase()} to organize products.`)}
             action={
               <Button icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-                New {singular}
+                {t(`New ${singular}`)}
               </Button>
             }
           />
@@ -173,7 +175,7 @@ export function EntityManager<T extends NamedEntity>({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="truncate text-sm font-medium text-content">{item.name}</p>
-                    {item.archived && <Badge tone="neutral">Archived</Badge>}
+                    {item.archived && <Badge tone="neutral">{t("Archived")}</Badge>}
                   </div>
                   {item.description && (
                     <p className="truncate text-xs text-content-muted">{item.description}</p>
@@ -181,7 +183,7 @@ export function EntityManager<T extends NamedEntity>({
                 </div>
                 {usageCount && (
                   <span className="text-xs text-content-muted">
-                    {usageCount(item)} {usageLabel}
+                    {usageCount(item)} {t(usageLabel)}
                   </span>
                 )}
                 <div className="opacity-0 transition-opacity group-hover:opacity-100">
@@ -193,19 +195,19 @@ export function EntityManager<T extends NamedEntity>({
                     }
                   >
                     <DropdownItem icon={<Pencil className="h-4 w-4" />} onClick={() => openEdit(item)}>
-                      Edit
+                      {t("Edit")}
                     </DropdownItem>
                     {archivable && (
                       <DropdownItem
                         icon={item.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
                         onClick={() => toggleArchive(item)}
                       >
-                        {item.archived ? "Restore" : "Archive"}
+                        {item.archived ? t("Restore") : t("Archive")}
                       </DropdownItem>
                     )}
                     <DropdownDivider />
                     <DropdownItem tone="danger" icon={<Trash2 className="h-4 w-4" />} onClick={() => setDeleteTarget(item)}>
-                      Delete
+                      {t("Delete")}
                     </DropdownItem>
                   </Dropdown>
                 </div>
@@ -218,11 +220,11 @@ export function EntityManager<T extends NamedEntity>({
       <Dialog
         open={creating || !!editing}
         onClose={close}
-        title={editing ? `Edit ${singular.toLowerCase()}` : `New ${singular.toLowerCase()}`}
+        title={editing ? t(`Edit ${singular.toLowerCase()}`) : t(`New ${singular.toLowerCase()}`)}
         footer={
           <>
-            <Button variant="secondary" onClick={close}>Cancel</Button>
-            <Button onClick={save}>{editing ? "Save changes" : "Create"}</Button>
+            <Button variant="secondary" onClick={close}>{t("Cancel")}</Button>
+            <Button onClick={save}>{editing ? t("Save changes") : t("Create")}</Button>
           </>
         }
       >
@@ -250,29 +252,29 @@ export function EntityManager<T extends NamedEntity>({
               </div>
               <label className="inline-flex cursor-pointer items-center gap-2 rounded border border-border-strong bg-surface px-3 py-1.5 text-sm text-content hover:bg-surface-muted">
                 <ImagePlus className="h-4 w-4" />
-                Upload logo
+                {t("Upload logo")}
                 <input type="file" accept="image/*" className="hidden" onChange={onLogo} />
               </label>
             </div>
           )}
           <div>
-            <Label required>Name</Label>
+            <Label required>{t("Name")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               invalid={!!error}
-              placeholder={`${singular} name`}
+              placeholder={t(`${singular} name`)}
               autoFocus
             />
             {error && <p className="mt-1 text-xs text-danger">{error}</p>}
           </div>
           <div>
-            <Label>Description</Label>
+            <Label>{t("Description")}</Label>
             <Textarea
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional description…"
+              placeholder={t("Optional description…")}
             />
           </div>
         </div>
@@ -282,8 +284,8 @@ export function EntityManager<T extends NamedEntity>({
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
-        title={`Delete ${singular.toLowerCase()}`}
-        message={`This will permanently remove “${deleteTarget?.name}”.`}
+        title={t(`Delete ${singular.toLowerCase()}`)}
+        message={t('This will permanently remove “{name}”.', { name: deleteTarget?.name ?? "" })}
       />
     </Card>
   );

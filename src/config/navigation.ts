@@ -39,7 +39,6 @@ export const navigation: NavItem[] = [
     children: [
       { label: "Company", href: "/settings?tab=company" },
       { label: "Categories", href: "/settings?tab=categories" },
-      { label: "Brands", href: "/settings?tab=brands" },
     ],
   },
 ];

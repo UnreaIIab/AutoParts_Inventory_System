@@ -9,6 +9,7 @@ import { Input, Label, Textarea, Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
+import { useT, type Lang } from "@/lib/i18n";
 
 interface Profile {
   name: string;
@@ -18,7 +19,6 @@ interface Profile {
   jobTitle: string;
   bio: string;
   avatar: string;
-  language: string;
 }
 
 const DEFAULT_PROFILE: Profile = {
@@ -29,7 +29,6 @@ const DEFAULT_PROFILE: Profile = {
   jobTitle: "Inventory Manager",
   bio: "Manages the AutoParts inventory, purchasing and sales operations.",
   avatar: "",
-  language: "English",
 };
 
 const STORAGE_KEY = "autoparts:profile";
@@ -46,8 +45,10 @@ function loadProfile(): Profile {
 
 export function ProfileView() {
   const toast = useToast();
+  const { t, lang, setLang } = useT();
   const [profile, setProfile] = React.useState<Profile>(DEFAULT_PROFILE);
   const [form, setForm] = React.useState<Profile>(DEFAULT_PROFILE);
+  const [langDraft, setLangDraft] = React.useState<Lang>(lang);
   const [changePw, setChangePw] = React.useState(false);
 
   React.useEffect(() => {
@@ -56,7 +57,11 @@ export function ProfileView() {
     setForm(loaded);
   }, []);
 
-  const dirty = JSON.stringify(profile) !== JSON.stringify(form);
+  // keep the draft in sync with the applied language (e.g. after saving)
+  React.useEffect(() => setLangDraft(lang), [lang]);
+
+  const dirty =
+    JSON.stringify(profile) !== JSON.stringify(form) || langDraft !== lang;
 
   const set =
     (k: keyof Profile) =>
@@ -74,7 +79,8 @@ export function ProfileView() {
   const save = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
     setProfile(form);
-    toast.success("Profile saved", "Your changes have been stored.");
+    if (langDraft !== lang) setLang(langDraft); // apply language only on save
+    toast.success(t("Profile saved"), t("Your changes have been stored."));
   };
 
   const initials = form.name
@@ -87,15 +93,22 @@ export function ProfileView() {
   return (
     <>
       <PageHeader
-        title="My Profile"
-        subtitle="Manage your personal information and account security"
+        title={t("My Profile")}
+        subtitle={t("Manage your personal information and account security")}
         actions={
           <>
-            <Button variant="secondary" disabled={!dirty} onClick={() => setForm(profile)}>
-              Cancel
+            <Button
+              variant="secondary"
+              disabled={!dirty}
+              onClick={() => {
+                setForm(profile);
+                setLangDraft(lang);
+              }}
+            >
+              {t("Cancel")}
             </Button>
             <Button disabled={!dirty} onClick={save}>
-              Save changes
+              {t("Save changes")}
             </Button>
           </>
         }
@@ -128,14 +141,14 @@ export function ProfileView() {
               <p className="text-sm text-content-muted">{form.jobTitle}</p>
               <Badge tone="primary" className="mt-3">
                 <Shield className="mr-1 h-3 w-3" />
-                {form.role}
+                {t(form.role)}
               </Badge>
             </CardContent>
           </Card>
 
           <Card className="p-0">
             <CardHeader>
-              <CardTitle>Contact</CardTitle>
+              <CardTitle>{t("Contact")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-content-muted">
@@ -152,35 +165,38 @@ export function ProfileView() {
         <div className="space-y-5">
           <Card className="p-0">
             <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
+              <CardTitle>{t("Personal Information")}</CardTitle>
               <User className="h-5 w-5 text-content-muted" />
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <Label required>Full name</Label>
+                <Label required>{t("Full name")}</Label>
                 <Input value={form.name} onChange={set("name")} />
               </div>
               <div>
-                <Label>Job title</Label>
+                <Label>{t("Job title")}</Label>
                 <Input value={form.jobTitle} onChange={set("jobTitle")} />
               </div>
               <div>
-                <Label required>Email</Label>
+                <Label required>{t("Email")}</Label>
                 <Input type="email" value={form.email} onChange={set("email")} />
               </div>
               <div>
-                <Label>Phone</Label>
+                <Label>{t("Phone")}</Label>
                 <Input value={form.phone} onChange={set("phone")} />
               </div>
               <div>
-                <Label>Language</Label>
-                <Select value={form.language} onChange={set("language")}>
-                  <option value="English">English</option>
-                  <option value="French">French</option>
+                <Label>{t("Language")}</Label>
+                <Select
+                  value={langDraft}
+                  onChange={(e) => setLangDraft(e.target.value as Lang)}
+                >
+                  <option value="en">{t("English")}</option>
+                  <option value="fr">{t("French")}</option>
                 </Select>
               </div>
               <div className="sm:col-span-2">
-                <Label>Bio</Label>
+                <Label>{t("Bio")}</Label>
                 <Textarea rows={3} value={form.bio} onChange={set("bio")} />
               </div>
             </CardContent>
@@ -188,16 +204,16 @@ export function ProfileView() {
 
           <Card className="p-0">
             <CardHeader>
-              <CardTitle>Security</CardTitle>
+              <CardTitle>{t("Security")}</CardTitle>
               <Lock className="h-5 w-5 text-content-muted" />
             </CardHeader>
             <CardContent className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-content">Password</p>
-                <p className="text-xs text-content-muted">Last changed — not available in demo</p>
+                <p className="text-sm font-medium text-content">{t("Password")}</p>
+                <p className="text-xs text-content-muted">{t("Last changed — not available in demo")}</p>
               </div>
               <Button variant="secondary" icon={<Lock className="h-4 w-4" />} onClick={() => setChangePw(true)}>
-                Change Password
+                {t("Change Password")}
               </Button>
             </CardContent>
           </Card>
@@ -207,32 +223,32 @@ export function ProfileView() {
       <Dialog
         open={changePw}
         onClose={() => setChangePw(false)}
-        title="Change password"
+        title={t("Change password")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setChangePw(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setChangePw(false)}>{t("Cancel")}</Button>
             <Button
               onClick={() => {
                 setChangePw(false);
-                toast.success("Password updated", "Your password has been changed.");
+                toast.success(t("Password updated"), t("Your password has been changed."));
               }}
             >
-              Update password
+              {t("Update password")}
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <div>
-            <Label required>Current password</Label>
+            <Label required>{t("Current password")}</Label>
             <Input type="password" placeholder="••••••••" />
           </div>
           <div>
-            <Label required>New password</Label>
+            <Label required>{t("New password")}</Label>
             <Input type="password" placeholder="••••••••" />
           </div>
           <div>
-            <Label required>Confirm new password</Label>
+            <Label required>{t("Confirm new password")}</Label>
             <Input type="password" placeholder="••••••••" />
           </div>
         </div>

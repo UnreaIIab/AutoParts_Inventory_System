@@ -27,6 +27,7 @@ import { db } from "@/lib/store/db";
 import type { Product, StockMovement, MovementType } from "@/lib/types";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/utils";
 import { stockLevel } from "@/features/products/product-schema";
+import { useT } from "@/lib/i18n";
 
 const stockTone = { in: "success", low: "warning", out: "danger" } as const;
 const stockText = { in: "In stock", low: "Low", out: "Out" };
@@ -39,6 +40,7 @@ interface StockRow extends Product {
 
 export function InventoryView() {
   const toast = useToast();
+  const { t } = useT();
   const products = useCollection(db.products);
   const sales = useCollection(db.sales);
   const movements = useCollection(db.movements);
@@ -106,13 +108,13 @@ export function InventoryView() {
       date: new Date().toISOString().slice(0, 10),
       note: adjustReason || undefined,
     });
-    toast.success("Stock adjusted", `${adjust.name}: ${adjustQty > 0 ? "+" : ""}${adjustQty}`);
+    toast.success(t("Stock adjusted"), `${adjust.name}: ${adjustQty > 0 ? "+" : ""}${adjustQty}`);
     setAdjust(null);
   };
 
   const stockColumns: Column<StockRow>[] = [
     {
-      key: "name", header: "Product", sortable: true, accessor: (r) => r.name,
+      key: "name", header: t("Product"), sortable: true, accessor: (r) => r.name,
       cell: (r) => (
         <div className="min-w-0">
           <p className="truncate font-medium text-content">{r.name}</p>
@@ -120,25 +122,25 @@ export function InventoryView() {
         </div>
       ),
     },
-    { key: "category", header: "Category", sortable: true, accessor: (r) => r.category,
+    { key: "category", header: t("Category"), sortable: true, accessor: (r) => r.category,
       cell: (r) => <Badge tone="neutral">{r.category}</Badge> },
-    { key: "stock", header: "Current", align: "right", sortable: true, accessor: (r) => r.stock,
+    { key: "stock", header: t("Current"), align: "right", sortable: true, accessor: (r) => r.stock,
       cell: (r) => <span className="font-medium tabular-nums">{r.stock}</span> },
-    { key: "available", header: "Available", align: "right", sortable: true, accessor: (r) => r.available,
+    { key: "available", header: t("Available"), align: "right", sortable: true, accessor: (r) => r.available,
       cell: (r) => <span className="tabular-nums">{r.available}</span> },
-    { key: "minStock", header: "Min", align: "right", accessor: (r) => r.minStock,
+    { key: "minStock", header: t("Min"), align: "right", accessor: (r) => r.minStock,
       cell: (r) => <span className="tabular-nums text-content-muted">{r.minStock}</span> },
-    { key: "purchasePrice", header: "Cost", align: "right", sortable: true, accessor: (r) => r.purchasePrice,
+    { key: "purchasePrice", header: t("Cost"), align: "right", sortable: true, accessor: (r) => r.purchasePrice,
       cell: (r) => <span className="tabular-nums text-content-muted">{formatCurrency(r.purchasePrice)}</span> },
-    { key: "sellingPrice", header: "Price", align: "right", sortable: true, accessor: (r) => r.sellingPrice,
+    { key: "sellingPrice", header: t("Price"), align: "right", sortable: true, accessor: (r) => r.sellingPrice,
       cell: (r) => <span className="tabular-nums">{formatCurrency(r.sellingPrice)}</span> },
-    { key: "value", header: "Value", align: "right", sortable: true, accessor: (r) => r.value,
+    { key: "value", header: t("Value"), align: "right", sortable: true, accessor: (r) => r.value,
       cell: (r) => <span className="font-medium tabular-nums">{formatCurrency(r.value)}</span> },
     {
-      key: "level", header: "Status", align: "center", accessor: (r) => stockLevel(r.stock, r.minStock),
+      key: "level", header: t("Status"), align: "center", accessor: (r) => stockLevel(r.stock, r.minStock),
       cell: (r) => {
         const level = stockLevel(r.stock, r.minStock);
-        return <Badge tone={stockTone[level]} dot>{stockText[level]}</Badge>;
+        return <Badge tone={stockTone[level]} dot>{t(stockText[level])}</Badge>;
       },
     },
   ];
@@ -155,14 +157,14 @@ export function InventoryView() {
   };
 
   const movementColumns: Column<StockMovement>[] = [
-    { key: "date", header: "Date", sortable: true, accessor: (m) => m.date, cell: (m) => formatDate(m.date) },
-    { key: "productName", header: "Product", sortable: true, accessor: (m) => m.productName },
+    { key: "date", header: t("Date"), sortable: true, accessor: (m) => m.date, cell: (m) => formatDate(m.date) },
+    { key: "productName", header: t("Product"), sortable: true, accessor: (m) => m.productName },
     {
-      key: "type", header: "Type", align: "center", accessor: (m) => m.type,
-      cell: (m) => <Badge tone={moveTypeTone[m.type]}>{m.type}</Badge>,
+      key: "type", header: t("Type"), align: "center", accessor: (m) => m.type,
+      cell: (m) => <Badge tone={moveTypeTone[m.type]}>{t(m.type)}</Badge>,
     },
     {
-      key: "quantity", header: "Change", align: "right", sortable: true, accessor: (m) => m.quantity,
+      key: "quantity", header: t("Change"), align: "right", sortable: true, accessor: (m) => m.quantity,
       cell: (m) => (
         <span className={`inline-flex items-center gap-0.5 font-medium tabular-nums ${m.quantity >= 0 ? "text-success" : "text-danger"}`}>
           {m.quantity >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
@@ -170,32 +172,32 @@ export function InventoryView() {
         </span>
       ),
     },
-    { key: "reference", header: "Reference", accessor: (m) => m.reference },
-    { key: "note", header: "Note", accessor: (m) => m.note ?? "—", cell: (m) => m.note || "—" },
+    { key: "reference", header: t("Reference"), accessor: (m) => m.reference },
+    { key: "note", header: t("Note"), accessor: (m) => m.note ?? "—", cell: (m) => m.note || "—" },
   ];
 
   return (
     <>
       <PageHeader
-        title="Inventory"
-        subtitle="Stock levels, adjustments and movement history"
+        title={t("Inventory")}
+        subtitle={t("Stock levels, adjustments and movement history")}
       />
 
       <div className="space-y-4 p-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Inventory Value" value={formatCurrency(totalValue)} icon={<Boxes className="h-5 w-5" />} tone="primary" />
-          <StatCard label="Total SKUs" value={formatNumber(products.length)} icon={<Warehouse className="h-5 w-5" />} tone="info" />
-          <StatCard label="Low Stock" value={String(lowCount)} icon={<AlertTriangle className="h-5 w-5" />} tone="warning" />
-          <StatCard label="Out of Stock" value={String(outCount)} icon={<XCircle className="h-5 w-5" />} tone="danger" />
+          <StatCard label={t("Inventory Value")} value={formatCurrency(totalValue)} icon={<Boxes className="h-5 w-5" />} tone="primary" />
+          <StatCard label={t("Total SKUs")} value={formatNumber(products.length)} icon={<Warehouse className="h-5 w-5" />} tone="info" />
+          <StatCard label={t("Low Stock")} value={String(lowCount)} icon={<AlertTriangle className="h-5 w-5" />} tone="warning" />
+          <StatCard label={t("Out of Stock")} value={String(outCount)} icon={<XCircle className="h-5 w-5" />} tone="danger" />
         </div>
 
         <Tabs
           active={tab}
           onChange={setTab}
           tabs={[
-            { id: "stock", label: "Stock Levels", count: products.length },
-            { id: "movements", label: "Movements", count: movements.length },
-            { id: "valuation", label: "Valuation" },
+            { id: "stock", label: t("Stock Levels"), count: products.length },
+            { id: "movements", label: t("Movements"), count: movements.length },
+            { id: "valuation", label: t("Valuation") },
           ]}
         />
 
@@ -207,15 +209,15 @@ export function InventoryView() {
                   <Input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by name or SKU…"
+                    placeholder={t("Search by name or SKU…")}
                     leftIcon={<Search className="h-4 w-4" />}
                   />
                 </div>
                 <Select className="w-44" value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)}>
-                  <option value="">Any stock level</option>
-                  <option value="in">In stock</option>
-                  <option value="low">Low stock</option>
-                  <option value="out">Out of stock</option>
+                  <option value="">{t("Any stock level")}</option>
+                  <option value="in">{t("In stock")}</option>
+                  <option value="low">{t("Low stock")}</option>
+                  <option value="out">{t("Out of stock")}</option>
                 </Select>
               </div>
             </Card>
@@ -232,14 +234,14 @@ export function InventoryView() {
                     icon={<Settings2 className="h-4 w-4" />}
                     onClick={() => openAdjust(r)}
                   >
-                    Adjust
+                    {t("Adjust")}
                   </Button>
                 )}
                 emptyState={
                   <EmptyState
                     icon={<Warehouse className="h-6 w-6" />}
-                    title="No products found"
-                    description="Adjust your search or filters."
+                    title={t("No products found")}
+                    description={t("Adjust your search or filters.")}
                   />
                 }
               />
@@ -256,8 +258,8 @@ export function InventoryView() {
               emptyState={
                 <EmptyState
                   icon={<SlidersHorizontal className="h-6 w-6" />}
-                  title="No movements yet"
-                  description="Stock movements from purchases, sales and adjustments will appear here."
+                  title={t("No movements yet")}
+                  description={t("Stock movements from purchases, sales and adjustments will appear here.")}
                 />
               }
             />
@@ -271,11 +273,11 @@ export function InventoryView() {
       <Dialog
         open={!!adjust}
         onClose={() => setAdjust(null)}
-        title="Stock adjustment"
+        title={t("Stock adjustment")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setAdjust(null)}>Cancel</Button>
-            <Button onClick={saveAdjustment} disabled={adjustQty === 0}>Apply adjustment</Button>
+            <Button variant="secondary" onClick={() => setAdjust(null)}>{t("Cancel")}</Button>
+            <Button onClick={saveAdjustment} disabled={adjustQty === 0}>{t("Apply adjustment")}</Button>
           </>
         }
       >
@@ -287,12 +289,12 @@ export function InventoryView() {
                 <p className="text-xs text-content-muted">{adjust.sku}</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-content-muted">Current</p>
+                <p className="text-xs text-content-muted">{t("Current")}</p>
                 <p className="text-lg font-semibold text-content">{adjust.stock}</p>
               </div>
             </div>
             <div>
-              <Label required>Adjustment (use negative to remove)</Label>
+              <Label required>{t("Adjustment (use negative to remove)")}</Label>
               <div className="flex items-center gap-2">
                 <Button variant="secondary" size="icon" onClick={() => setAdjustQty((q) => q - 1)}>−</Button>
                 <Input
@@ -304,16 +306,16 @@ export function InventoryView() {
                 <Button variant="secondary" size="icon" onClick={() => setAdjustQty((q) => q + 1)}>+</Button>
               </div>
               <p className="mt-1.5 text-xs text-content-muted">
-                New quantity: <span className="font-medium text-content">{Math.max(0, adjust.stock + adjustQty)}</span>
+                {t("New quantity")}: <span className="font-medium text-content">{Math.max(0, adjust.stock + adjustQty)}</span>
               </p>
             </div>
             <div>
-              <Label>Reason</Label>
+              <Label>{t("Reason")}</Label>
               <Textarea
                 rows={2}
                 value={adjustReason}
                 onChange={(e) => setAdjustReason(e.target.value)}
-                placeholder="e.g. Damaged stock, stock count correction…"
+                placeholder={t("e.g. Damaged stock, stock count correction…")}
               />
             </div>
           </div>
@@ -324,6 +326,7 @@ export function InventoryView() {
 }
 
 function ValuationPanel({ rows }: { rows: StockRow[] }) {
+  const { t } = useT();
   const costValue = rows.reduce((s, r) => s + r.stock * r.purchasePrice, 0);
   const retailValue = rows.reduce((s, r) => s + r.stock * r.sellingPrice, 0);
   const potentialProfit = retailValue - costValue;
@@ -346,21 +349,21 @@ function ValuationPanel({ rows }: { rows: StockRow[] }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Stock Cost Value" value={formatCurrency(costValue)} icon={<Boxes className="h-5 w-5" />} tone="primary" />
-        <StatCard label="Retail Value" value={formatCurrency(retailValue)} icon={<Warehouse className="h-5 w-5" />} tone="info" />
-        <StatCard label="Potential Profit" value={formatCurrency(potentialProfit)} icon={<AlertTriangle className="h-5 w-5" />} tone="success" />
-        <StatCard label="Avg. Margin" value={`${margin.toFixed(1)}%`} icon={<XCircle className="h-5 w-5" />} tone="warning" />
+        <StatCard label={t("Stock Cost Value")} value={formatCurrency(costValue)} icon={<Boxes className="h-5 w-5" />} tone="primary" />
+        <StatCard label={t("Retail Value")} value={formatCurrency(retailValue)} icon={<Warehouse className="h-5 w-5" />} tone="info" />
+        <StatCard label={t("Potential Profit")} value={formatCurrency(potentialProfit)} icon={<AlertTriangle className="h-5 w-5" />} tone="success" />
+        <StatCard label={t("Avg. Margin")} value={`${margin.toFixed(1)}%`} icon={<XCircle className="h-5 w-5" />} tone="warning" />
       </div>
 
       <Card className="overflow-hidden p-0">
         <table className="w-full text-sm">
           <thead className="bg-surface-muted text-xs uppercase tracking-wide text-content-muted">
             <tr>
-              <th className="px-4 py-2.5 text-left font-semibold">Category</th>
-              <th className="px-4 py-2.5 text-right font-semibold">Units</th>
-              <th className="px-4 py-2.5 text-right font-semibold">Cost Value</th>
-              <th className="px-4 py-2.5 text-right font-semibold">Retail Value</th>
-              <th className="px-4 py-2.5 text-right font-semibold">Profit</th>
+              <th className="px-4 py-2.5 text-left font-semibold">{t("Category")}</th>
+              <th className="px-4 py-2.5 text-right font-semibold">{t("Units")}</th>
+              <th className="px-4 py-2.5 text-right font-semibold">{t("Cost Value")}</th>
+              <th className="px-4 py-2.5 text-right font-semibold">{t("Retail Value")}</th>
+              <th className="px-4 py-2.5 text-right font-semibold">{t("Profit")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -378,7 +381,7 @@ function ValuationPanel({ rows }: { rows: StockRow[] }) {
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-border-strong bg-surface-muted font-semibold text-content">
-              <td className="px-4 py-2.5">Total</td>
+              <td className="px-4 py-2.5">{t("Total")}</td>
               <td className="px-4 py-2.5 text-right tabular-nums">{rows.reduce((s, r) => s + r.stock, 0)}</td>
               <td className="px-4 py-2.5 text-right tabular-nums">{formatCurrency(costValue)}</td>
               <td className="px-4 py-2.5 text-right tabular-nums">{formatCurrency(retailValue)}</td>

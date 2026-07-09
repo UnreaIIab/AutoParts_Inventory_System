@@ -34,6 +34,7 @@ import { useCollection } from "@/lib/store/hooks";
 import { db } from "@/lib/store/db";
 import type { Product } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import { toCSV, parseCSV, downloadFile } from "@/lib/csv";
 import { generateId } from "@/lib/store/storage";
 import { ProductForm } from "./product-form";
@@ -49,14 +50,13 @@ const stockText = { in: "In stock", low: "Low stock", out: "Out of stock" };
 
 export function ProductsView() {
   const toast = useToast();
+  const { t } = useT();
   const products = useCollection(db.products);
   const categories = useCollection(db.categories);
-  const brands = useCollection(db.brands);
   const suppliers = useCollection(db.suppliers);
 
   const [search, setSearch] = React.useState("");
   const [category, setCategory] = React.useState("");
-  const [brand, setBrand] = React.useState("");
   const [supplier, setSupplier] = React.useState("");
   const [status, setStatus] = React.useState("");
   const [stock, setStock] = React.useState("");
@@ -76,7 +76,6 @@ export function ProductsView() {
       if (q && !`${p.name} ${p.sku} ${p.barcode}`.toLowerCase().includes(q))
         return false;
       if (category && p.category !== category) return false;
-      if (brand && p.brand !== brand) return false;
       if (supplier && p.supplier !== supplier) return false;
       if (status && p.status !== status) return false;
       if (stock && stockLevel(p.stock, p.minStock) !== stock) return false;
@@ -84,7 +83,7 @@ export function ProductsView() {
       if (maxPrice && p.sellingPrice > Number(maxPrice)) return false;
       return true;
     });
-  }, [products, search, category, brand, supplier, status, stock, minPrice, maxPrice]);
+  }, [products, search, category, supplier, status, stock, minPrice, maxPrice]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -95,12 +94,11 @@ export function ProductsView() {
 
   React.useEffect(
     () => setPage(1),
-    [search, category, brand, supplier, status, stock, minPrice, maxPrice],
+    [search, category, supplier, status, stock, minPrice, maxPrice],
   );
 
   const activeFilters = [
     category && { key: "category", label: category, clear: () => setCategory("") },
-    brand && { key: "brand", label: brand, clear: () => setBrand("") },
     supplier && { key: "supplier", label: supplier, clear: () => setSupplier("") },
     status && { key: "status", label: status, clear: () => setStatus("") },
     stock && {
@@ -120,7 +118,6 @@ export function ProductsView() {
 
   const clearAll = () => {
     setCategory("");
-    setBrand("");
     setSupplier("");
     setStatus("");
     setStock("");
@@ -136,14 +133,14 @@ export function ProductsView() {
         ...values,
         updatedAt: new Date().toISOString(),
       });
-      toast.success("Product updated", values.name);
+      toast.success(t("Product updated"), values.name);
     } else {
       db.products.create({
         ...values,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
-      toast.success("Product created", values.name);
+      toast.success(t("Product created"), values.name);
     }
     setDrawer(null);
   };
@@ -151,24 +148,24 @@ export function ProductsView() {
   const confirmDelete = () => {
     if (!deleteTarget) return;
     db.products.remove(deleteTarget.id);
-    toast.success("Product deleted", deleteTarget.name);
+    toast.success(t("Product deleted"), deleteTarget.name);
     setDeleteTarget(null);
   };
 
   const confirmBulkDelete = () => {
     db.products.removeMany(selected);
-    toast.success(`${selected.size} products deleted`);
+    toast.success(t("{n} products deleted", { n: selected.size }));
     setSelected(new Set());
     setBulkDelete(false);
   };
 
   const handleExport = () => {
     const csv = toCSV(filtered, [
-      "name", "sku", "barcode", "category", "brand", "supplier",
+      "name", "sku", "barcode", "category", "supplier",
       "purchasePrice", "sellingPrice", "stock", "minStock", "unit", "status",
     ]);
     downloadFile("products.csv", csv);
-    toast.success("Exported", `${filtered.length} products to CSV`);
+    toast.success(t("Exported"), t("{n} products to CSV", { n: filtered.length }));
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,7 +184,6 @@ export function ProductsView() {
             sku: r.sku,
             barcode: r.barcode ?? "",
             category: r.category ?? "",
-            brand: r.brand ?? "",
             supplier: r.supplier ?? "",
             purchasePrice: Number(r.purchasePrice) || 0,
             sellingPrice: Number(r.sellingPrice) || 0,
@@ -201,9 +197,9 @@ export function ProductsView() {
           });
           count++;
         }
-        toast.success("Imported", `${count} products added`);
+        toast.success(t("Imported"), t("{n} products added", { n: count }));
       } catch {
-        toast.error("Import failed", "Could not parse the CSV file");
+        toast.error(t("Import failed"), t("Could not parse the CSV file"));
       }
     };
     reader.readAsText(file);
@@ -214,7 +210,7 @@ export function ProductsView() {
   const columns: Column<Product>[] = [
     {
       key: "name",
-      header: "Product",
+      header: t("Product"),
       sortable: true,
       accessor: (p) => p.name,
       cell: (p) => (
@@ -229,16 +225,15 @@ export function ProductsView() {
         </div>
       ),
     },
-    { key: "category", header: "Category", sortable: true, accessor: (p) => p.category,
+    { key: "category", header: t("Category"), sortable: true, accessor: (p) => p.category,
       cell: (p) => <Badge tone="neutral">{p.category}</Badge> },
-    { key: "brand", header: "Brand", sortable: true, accessor: (p) => p.brand },
     {
-      key: "sellingPrice", header: "Price", align: "right", sortable: true,
+      key: "sellingPrice", header: t("Price"), align: "right", sortable: true,
       accessor: (p) => p.sellingPrice,
       cell: (p) => <span className="font-medium">{formatCurrency(p.sellingPrice)}</span>,
     },
     {
-      key: "stock", header: "Stock", align: "right", sortable: true,
+      key: "stock", header: t("Stock"), align: "right", sortable: true,
       accessor: (p) => p.stock,
       cell: (p) => {
         const level = stockLevel(p.stock, p.minStock);
@@ -246,18 +241,18 @@ export function ProductsView() {
           <div className="flex items-center justify-end gap-2">
             <span className="tabular-nums font-medium">{p.stock}</span>
             <Badge tone={stockTone[level]} dot>
-              {stockText[level]}
+              {t(stockText[level])}
             </Badge>
           </div>
         );
       },
     },
     {
-      key: "status", header: "Status", align: "center", sortable: true,
+      key: "status", header: t("Status"), align: "center", sortable: true,
       accessor: (p) => p.status,
       cell: (p) => (
         <Badge tone={p.status === "active" ? "success" : "neutral"}>
-          {p.status}
+          {t(p.status)}
         </Badge>
       ),
     },
@@ -266,8 +261,8 @@ export function ProductsView() {
   return (
     <>
       <PageHeader
-        title="Products"
-        subtitle={`${products.length} parts in catalog`}
+        title={t("Products")}
+        subtitle={t("{n} parts in catalog", { n: products.length })}
         actions={
           <>
             <input
@@ -282,27 +277,27 @@ export function ProductsView() {
               icon={<Upload className="h-4 w-4" />}
               onClick={() => fileRef.current?.click()}
             >
-              Import
+              {t("Import")}
             </Button>
             <Button
               variant="secondary"
               icon={<Download className="h-4 w-4" />}
               onClick={handleExport}
             >
-              Export
+              {t("Export")}
             </Button>
             <Button
               variant="secondary"
               icon={<Printer className="h-4 w-4" />}
               onClick={() => window.print()}
             >
-              Print
+              {t("Print")}
             </Button>
             <Button
               icon={<Plus className="h-4 w-4" />}
               onClick={() => setDrawer({ type: "create" })}
             >
-              New Product
+              {t("New Product")}
             </Button>
           </>
         }
@@ -346,7 +341,7 @@ export function ProductsView() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name, SKU or barcode…"
+                placeholder={t("Search by name, SKU or barcode…")}
                 leftIcon={<Search className="h-4 w-4" />}
               />
             </div>
@@ -355,7 +350,7 @@ export function ProductsView() {
               icon={<SlidersHorizontal className="h-4 w-4" />}
               onClick={() => setShowFilters((s) => !s)}
             >
-              Filters
+              {t("Filters")}
               {activeFilters.length > 0 && (
                 <span className="ml-1 rounded-full bg-primary px-1.5 text-[10px] text-white">
                   {activeFilters.length}
@@ -365,35 +360,29 @@ export function ProductsView() {
           </div>
 
           {showFilters && (
-            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3 sm:grid-cols-3 lg:grid-cols-5">
               <Select value={category} onChange={(e) => setCategory(e.target.value)}>
-                <option value="">All categories</option>
+                <option value="">{t("All categories")}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.name}>{c.name}</option>
                 ))}
               </Select>
-              <Select value={brand} onChange={(e) => setBrand(e.target.value)}>
-                <option value="">All brands</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.name}>{b.name}</option>
-                ))}
-              </Select>
               <Select value={supplier} onChange={(e) => setSupplier(e.target.value)}>
-                <option value="">All suppliers</option>
+                <option value="">{t("All suppliers")}</option>
                 {suppliers.map((s) => (
                   <option key={s.id} value={s.name}>{s.name}</option>
                 ))}
               </Select>
               <Select value={stock} onChange={(e) => setStock(e.target.value)}>
-                <option value="">Any stock level</option>
-                <option value="in">In stock</option>
-                <option value="low">Low stock</option>
-                <option value="out">Out of stock</option>
+                <option value="">{t("Any stock level")}</option>
+                <option value="in">{t("In stock")}</option>
+                <option value="low">{t("Low stock")}</option>
+                <option value="out">{t("Out of stock")}</option>
               </Select>
               <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-                <option value="">Any status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">{t("Any status")}</option>
+                <option value="active">{t("Active")}</option>
+                <option value="inactive">{t("Inactive")}</option>
               </Select>
               <div className="flex items-center gap-1">
                 <Input
@@ -431,7 +420,7 @@ export function ProductsView() {
                 onClick={clearAll}
                 className="text-xs font-medium text-content-muted hover:text-content"
               >
-                Clear all
+                {t("Clear all")}
               </button>
             </div>
           )}
@@ -441,7 +430,7 @@ export function ProductsView() {
         {selected.size > 0 && (
           <div className="flex items-center justify-between rounded-md border border-primary/30 bg-primary-soft px-4 py-2.5 text-sm">
             <span className="font-medium text-primary">
-              {selected.size} selected
+              {t("{n} selected", { n: selected.size })}
             </span>
             <div className="flex items-center gap-2">
               <Button
@@ -449,7 +438,7 @@ export function ProductsView() {
                 variant="ghost"
                 onClick={() => setSelected(new Set())}
               >
-                Clear
+                {t("Clear")}
               </Button>
               <Button
                 size="sm"
@@ -457,7 +446,7 @@ export function ProductsView() {
                 icon={<Trash2 className="h-4 w-4" />}
                 onClick={() => setBulkDelete(true)}
               >
-                Delete
+                {t("Delete")}
               </Button>
             </div>
           </div>
@@ -485,13 +474,13 @@ export function ProductsView() {
                   icon={<Eye className="h-4 w-4" />}
                   onClick={() => setDrawer({ type: "view", product: p })}
                 >
-                  Quick view
+                  {t("Quick view")}
                 </DropdownItem>
                 <DropdownItem
                   icon={<Pencil className="h-4 w-4" />}
                   onClick={() => setDrawer({ type: "edit", product: p })}
                 >
-                  Edit
+                  {t("Edit")}
                 </DropdownItem>
                 <DropdownDivider />
                 <DropdownItem
@@ -499,25 +488,25 @@ export function ProductsView() {
                   icon={<Trash2 className="h-4 w-4" />}
                   onClick={() => setDeleteTarget(p)}
                 >
-                  Delete
+                  {t("Delete")}
                 </DropdownItem>
               </Dropdown>
             )}
             emptyState={
               <EmptyState
                 icon={<Package className="h-6 w-6" />}
-                title="No products found"
+                title={t("No products found")}
                 description={
                   activeFilters.length || search
-                    ? "Try adjusting your search or filters."
-                    : "Get started by adding your first product."
+                    ? t("Try adjusting your search or filters.")
+                    : t("Get started by adding your first product.")
                 }
                 action={
                   <Button
                     icon={<Plus className="h-4 w-4" />}
                     onClick={() => setDrawer({ type: "create" })}
                   >
-                    New Product
+                    {t("New Product")}
                   </Button>
                 }
               />
@@ -541,19 +530,19 @@ export function ProductsView() {
         open={drawer?.type === "create" || drawer?.type === "edit"}
         onClose={() => setDrawer(null)}
         width="lg"
-        title={drawer?.type === "edit" ? "Edit product" : "New product"}
+        title={drawer?.type === "edit" ? t("Edit product") : t("New product")}
         description={
           drawer?.type === "edit"
-            ? "Update the details of this part"
-            : "Add a new part to your catalog"
+            ? t("Update the details of this part")
+            : t("Add a new part to your catalog")
         }
         footer={
           <>
             <Button variant="secondary" onClick={() => setDrawer(null)}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button type="submit" form="product-form">
-              {drawer?.type === "edit" ? "Save changes" : "Create product"}
+              {drawer?.type === "edit" ? t("Save changes") : t("Create product")}
             </Button>
           </>
         }
@@ -580,7 +569,7 @@ export function ProductsView() {
           drawer?.type === "view" && (
             <>
               <Button variant="secondary" onClick={() => setDrawer(null)}>
-                Close
+                {t("Close")}
               </Button>
               <Button
                 icon={<Pencil className="h-4 w-4" />}
@@ -589,7 +578,7 @@ export function ProductsView() {
                   setDrawer({ type: "edit", product: drawer.product })
                 }
               >
-                Edit
+                {t("Edit")}
               </Button>
             </>
           )
@@ -603,15 +592,15 @@ export function ProductsView() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
-        title="Delete product"
-        message={`This will permanently remove “${deleteTarget?.name}”. This action cannot be undone.`}
+        title={t("Delete product")}
+        message={t('This will permanently remove “{name}”. This action cannot be undone.', { name: deleteTarget?.name ?? "" })}
       />
       <ConfirmDialog
         open={bulkDelete}
         onClose={() => setBulkDelete(false)}
         onConfirm={confirmBulkDelete}
-        title="Delete products"
-        message={`This will permanently remove ${selected.size} selected products.`}
+        title={t("Delete products")}
+        message={t("This will permanently remove {n} selected products.", { n: selected.size })}
       />
     </>
   );
