@@ -81,6 +81,19 @@ export const fr: Record<string, string> = {
   Reference: "Référence",
   Qty: "Qté",
 
+  /* -------------------------------- Login --------------------------------- */
+  "Sign in": "Se connecter",
+  "Enter your credentials to access your account":
+    "Saisissez vos identifiants pour accéder à votre compte",
+  "Invalid email or password": "E-mail ou mot de passe invalide",
+  "Forgot password?": "Mot de passe oublié ?",
+  "Password reset is not available in the demo.":
+    "La réinitialisation du mot de passe n'est pas disponible en démo.",
+  "Remember me": "Se souvenir de moi",
+  "Demo account": "Compte de démonstration",
+  "Show password": "Afficher le mot de passe",
+  "Hide password": "Masquer le mot de passe",
+
   /* ------------------------------ Top bar --------------------------------- */
   "My Profile": "Mon profil",
   "Account Settings": "Paramètres du compte",

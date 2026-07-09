@@ -16,13 +16,28 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { useT } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth/auth";
 
 export function Topbar() {
   const { setMobileOpen } = useSidebar();
   const toast = useToast();
   const router = useRouter();
   const { t } = useT();
+  const { user, logout } = useAuth();
   const [changePw, setChangePw] = React.useState(false);
+
+  const displayName = user?.name ?? "Ayoub Fellat";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/login");
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
@@ -45,22 +60,22 @@ export function Topbar() {
           trigger={
             <button className="ml-1 flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-surface-muted">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
-                AF
+                {initials}
               </span>
               <span className="hidden text-left sm:block">
                 <span className="block text-sm font-medium leading-tight text-content">
-                  Ayoub Fellat
+                  {displayName}
                 </span>
                 <span className="block text-xs leading-tight text-content-muted">
-                  {t("Administrator")}
+                  {t(user?.role ?? "Administrator")}
                 </span>
               </span>
             </button>
           }
         >
           <div className="border-b border-border px-3 py-2.5">
-            <p className="text-sm font-medium text-content">Ayoub Fellat</p>
-            <p className="text-xs text-content-muted">ayoubfellat2016@gmail.com</p>
+            <p className="text-sm font-medium text-content">{displayName}</p>
+            <p className="text-xs text-content-muted">{user?.email ?? "ayoubfellat2016@gmail.com"}</p>
           </div>
           <DropdownItem icon={<User className="h-4 w-4" />} onClick={() => router.push("/profile")}>
             {t("My Profile")}
@@ -75,7 +90,7 @@ export function Topbar() {
           <DropdownItem
             tone="danger"
             icon={<LogOut className="h-4 w-4" />}
-            onClick={() => toast.toast({ tone: "info", title: t("Logout"), description: "Authentication arrives with the Supabase integration." })}
+            onClick={handleLogout}
           >
             {t("Logout")}
           </DropdownItem>
